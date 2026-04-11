@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open /Users/kylestarr/Code/video-game-timeline/index.html)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

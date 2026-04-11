@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Game Timeline — Generational Impact</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #08080f;
+  --bg2: #0e0e1c;
+  --bg3: #141428;
+  --text: #dde0f0;
+  --text-dim: #667080;
+  --accent: #7c3aed;
+  --accent-glow: rgba(124, 58, 237, 0.4);
+  --green: #06d6a0;
+  --gold: #f5c518;
+  --overlay-dark: rgba(4, 4, 12, 0.78);
+  --overlay-early: rgba(60, 20, 120, 0.38);
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Courier New', 'Consolas', monospace;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+#app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+/* ─── Header ─── */
+#header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px; background: var(--bg2);
+  border-bottom: 1px solid rgba(124,58,237,0.25);
+  flex-shrink: 0; gap: 24px; flex-wrap: wrap;
+}
+.title-block h1 {
+  font-size: 1.35rem; font-weight: 700; letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #a78bfa, #06d6a0);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.title-block p { font-size: 0.75rem; color: var(--text-dim); margin-top: 3px; max-width: 420px; }
+
+.birth-panel {
+  display: flex; align-items: center; gap: 20px; flex-shrink: 0;
+}
+.birth-year-box {
+  text-align: center;
+  background: var(--bg3); border: 1px solid var(--accent); border-radius: 10px;
+  padding: 10px 22px;
+}
+.birth-year-box .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+#birth-year-val { font-size: 2.2rem; font-weight: 800; color: #a78bfa; line-height: 1; font-family: var(--font-mono); }
+.gaming-range-box { text-align: center; }
+.gaming-range-box .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+#gaming-range-val { font-size: 1rem; font-weight: 600; color: var(--green); }
+#generation-val { font-size: 0.72rem; color: var(--gold); margin-top: 3px; }
+
+.instructions {
+  font-size: 0.7rem; color: var(--text-dim); max-width: 160px; text-align: right; line-height: 1.5;
+}
+kbd {
+  background: var(--bg3); border: 1px solid #334; border-radius: 4px;
+  padding: 1px 5px; font-size: 0.65rem; color: var(--text-dim); font-family: var(--font-mono);
+}
+
+/* ─── Legend ─── */
+#legend {
+  display: flex; align-items: center; gap: 16px; padding: 8px 28px;
+  background: var(--bg2); border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.legend-title { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 4px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: var(--text-dim); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.legend-sep { width: 1px; height: 14px; background: rgba(255,255,255,0.1); }
+
+/* ─── Timeline outer ─── */
+#timeline-outer {
+  flex: 1; overflow-x: auto; overflow-y: hidden; position: relative;
+  scrollbar-width: thin; scrollbar-color: #334 transparent;
+}
+#timeline-outer::-webkit-scrollbar { height: 6px; }
+#timeline-outer::-webkit-scrollbar-track { background: transparent; }
+#timeline-outer::-webkit-scrollbar-thumb { background: #334; border-radius: 3px; }
+
+#timeline-inner {
+  position: relative; height: 100%;
+  /* width set by JS */
+}
+
+/* ─── Console section ─── */
+#console-area {
+  position: absolute; top: 0; left: 0; right: 0;
+  /* height set by JS */
+}
+
+.console-section-label {
+  position: absolute; left: 4px; top: 50%; transform: translateY(-50%);
+  font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.08em; writing-mode: vertical-rl; white-space: nowrap;
+  opacity: 0.5;
+}
+
+.console-bar {
+  position: absolute; border-radius: 3px; cursor: default;
+  display: flex; align-items: center; overflow: hidden;
+  transition: filter 0.15s;
+}
+.console-bar:hover { filter: brightness(1.3); z-index: 30 !important; }
+.console-bar .console-name {
+  font-size: 0.62rem; font-weight: 600; white-space: nowrap; padding: 0 6px;
+  color: rgba(255,255,255,0.9); text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ─── Games section ─── */
+#games-area {
+  position: absolute; left: 0; right: 0;
+  /* top and height set by JS */
+}
+
+.game-dot {
+  position: absolute; border-radius: 50%; cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s, filter 0.12s, opacity 0.2s;
+  border: 1.5px solid rgba(255,255,255,0.15);
+}
+.game-dot:hover {
+  transform: translate(-50%, -50%) scale(1.6);
+  filter: brightness(1.4);
+  z-index: 50 !important;
+  border-color: rgba(255,255,255,0.6);
+}
+
+/* ─── Decade markers ─── */
+.decade-line {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: rgba(255,255,255,0.06); pointer-events: none;
+}
+.decade-line.major { background: rgba(255,255,255,0.12); }
+
+/* ─── Year ruler ─── */
+#year-ruler {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 32px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.year-tick {
+  position: absolute; bottom: 0; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.year-tick .tick-line { width: 1px; background: rgba(255,255,255,0.2); }
+.year-tick .tick-line.major { background: rgba(255,255,255,0.4); height: 8px; }
+.year-tick .tick-line.minor { height: 4px; }
+.year-tick .tick-label {
+  font-size: 0.62rem; color: var(--text-dim); font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+/* ─── Overlay ─── */
+#overlay-left, #overlay-right {
+  position: absolute; top: 0; bottom: 0;
+  background: var(--overlay-dark);
+  pointer-events: none; z-index: 10;
+  transition: none;
+}
+
+#window-el {
+  position: absolute; top: 0; bottom: 0;
+  z-index: 11; cursor: grab; user-select: none;
+  /* width set by JS */
+}
+#window-el:active { cursor: grabbing; }
+#window-el.dragging { cursor: grabbing; }
+
+#early-zone {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  background: var(--overlay-early);
+  border-left: 2px solid rgba(124,58,237,0.5);
+  pointer-events: none;
+}
+#gaming-zone {
+  position: absolute; top: 0; bottom: 0;
+  background: transparent;
+  border-right: 2px solid rgba(6,214,160,0.5);
+  pointer-events: none;
+}
+
+.zone-label {
+  position: absolute; bottom: 38px;
+  font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  white-space: nowrap; pointer-events: none;
+}
+#early-zone .zone-label {
+  left: 4px; color: rgba(167,139,250,0.6);
+}
+#gaming-zone .zone-label {
+  right: 4px; color: rgba(6,214,160,0.55);
+}
+
+#window-border {
+  position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1.5px rgba(124,58,237,0.3), inset 0 0 20px rgba(124,58,237,0.05);
+}
+
+#birth-marker {
+  position: absolute; top: 0; bottom: 0;
+  width: 2px; background: rgba(167,139,250,0.7);
+  pointer-events: none;
+  box-shadow: 0 0 6px rgba(124,58,237,0.6);
+}
+#birth-marker-label {
+  position: absolute; top: 4px; left: 4px;
+  font-size: 0.6rem; color: rgba(167,139,250,0.8); white-space: nowrap;
+  font-weight: 700; font-family: var(--font-mono);
+}
+
+#gaming-start-marker {
+  position: absolute; top: 0; bottom: 0;
+  width: 1.5px; background: rgba(6,214,160,0.6);
+  pointer-events: none;
+  box-shadow: 0 0 6px rgba(6,214,160,0.4);
+}
+#gaming-start-label {
+  position: absolute; top: 4px; right: 4px;
+  font-size: 0.6rem; color: rgba(6,214,160,0.75); white-space: nowrap;
+  font-weight: 700; font-family: var(--font-mono); text-align: right;
+}
+
+/* Window drag handle */
+#drag-handle {
+  position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%);
+  background: rgba(124,58,237,0.3); border: 1px solid rgba(124,58,237,0.5);
+  border-radius: 12px; padding: 4px 12px;
+  font-size: 0.6rem; color: rgba(167,139,250,0.7);
+  white-space: nowrap; cursor: grab;
+}
+#drag-handle:active { cursor: grabbing; }
+
+/* ─── Info panel ─── */
+#info-panel {
+  flex-shrink: 0; background: var(--bg2);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 28px; min-height: 64px;
+  display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+}
+.info-block { display: flex; flex-direction: column; gap: 2px; }
+.info-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.info-value { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+.info-value.highlight { color: var(--green); }
+.info-value.accent { color: #a78bfa; }
+.era-games { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.era-game-chip {
+  background: var(--bg3); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px; padding: 2px 7px; font-size: 0.65rem; color: var(--text-dim);
+}
+.era-game-chip.top { color: var(--text); border-color: rgba(124,58,237,0.4); }
+
+/* ─── Tooltip ─── */
+#tooltip {
+  position: fixed; z-index: 1000; pointer-events: none;
+  background: var(--bg3); border: 1px solid rgba(124,58,237,0.4);
+  border-radius: 8px; padding: 10px 14px; max-width: 220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.1);
+  opacity: 0; transition: opacity 0.15s;
+}
+#tooltip.visible { opacity: 1; }
+#tooltip .tt-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+#tooltip .tt-year { font-size: 0.68rem; color: var(--accent); font-family: var(--font-mono); font-weight: 600; }
+#tooltip .tt-platform { font-size: 0.68rem; color: var(--text-dim); }
+#tooltip .tt-genre { font-size: 0.65rem; margin-top: 5px; }
+.genre-tag {
+  display: inline-block; border-radius: 3px; padding: 1px 6px;
+  font-size: 0.62rem; font-weight: 600;
+}
+#tooltip .tt-desc { font-size: 0.68rem; color: var(--text-dim); margin-top: 6px; line-height: 1.4; }
+#tooltip .tt-impact { font-size: 0.62rem; color: var(--gold); margin-top: 5px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="header">
+    <div class="title-block">
+      <h1>Video Game Timeline</h1>
+      <p>Drag the window to set your birth year and explore what defined each generation's gaming experience</p>
+    </div>
+    <div class="birth-panel">
+      <div class="birth-year-box">
+        <div class="label">Born</div>
+        <div id="birth-year-val">1983</div>
+      </div>
+      <div class="gaming-range-box">
+        <div class="label">Core gaming years</div>
+        <div id="gaming-range-val">1988 – 1992</div>
+        <div id="generation-val">Millennials</div>
+      </div>
+      <div class="instructions">
+        Drag the window<br>or use <kbd>←</kbd> <kbd>→</kbd> keys
+      </div>
+    </div>
+  </header>
+
+  <div id="legend">
+    <span class="legend-title">Genre</span>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Platformer</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Shooter</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>RPG</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ec4899"></div>Fighting</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Adventure</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Strategy</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Sports/Racing</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div>Simulation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a3a3a3"></div>Other</div>
+    <div class="legend-sep"></div>
+    <span class="legend-title" style="margin-left:4px">Size = cultural impact</span>
+  </div>
+
+  <div id="timeline-outer">
+    <div id="timeline-inner">
+      <div id="console-area"></div>
+      <div id="games-area"></div>
+      <div id="year-ruler"></div>
+      <div id="overlay-left"></div>
+      <div id="window-el">
+        <div id="early-zone">
+          <div class="zone-label">Childhood<br>(age 0–4)</div>
+        </div>
+        <div id="gaming-zone">
+          <div class="zone-label">Gaming years<br>(age 5–14)</div>
+        </div>
+        <div id="window-border"></div>
+        <div id="birth-marker">
+          <div id="birth-marker-label">Born</div>
+        </div>
+        <div id="gaming-start-marker">
+          <div id="gaming-start-label">Age 5</div>
+        </div>
+        <div id="drag-handle">⟺ drag</div>
+      </div>
+      <div id="overlay-right"></div>
+    </div>
+  </div>
+
+  <div id="info-panel"></div>
+</div>
+
+<div id="tooltip">
+  <div class="tt-title" id="tt-title"></div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:2px">
+    <div class="tt-year" id="tt-year"></div>
+    <div class="tt-platform" id="tt-platform"></div>
+  </div>
+  <div class="tt-genre"><span class="genre-tag" id="tt-genre"></span></div>
+  <div class="tt-desc" id="tt-desc"></div>
+  <div class="tt-impact" id="tt-impact"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+
+const CONSOLES = [
+  // Atari
+  { name:"Atari 2600",    company:"Atari",     start:1977, end:1992, color:"#d97706", row:0 },
+  { name:"Atari 5200",    company:"Atari",     start:1982, end:1984, color:"#b45309", row:1 },
+  { name:"Atari 7800",    company:"Atari",     start:1986, end:1992, color:"#92400e", row:1 },
+  // Mattel / Coleco
+  { name:"Intellivision", company:"Mattel",    start:1980, end:1990, color:"#78716c", row:2 },
+  { name:"ColecoVision",  company:"Coleco",    start:1982, end:1985, color:"#57534e", row:3 },
+  // Nintendo home
+  { name:"NES",           company:"Nintendo",  start:1985, end:1995, color:"#dc2626", row:4 },
+  { name:"Super Nintendo",company:"Nintendo",  start:1991, end:1999, color:"#b91c1c", row:5 },
+  { name:"Nintendo 64",   company:"Nintendo",  start:1996, end:2002, color:"#991b1b", row:6 },
+  { name:"GameCube",      company:"Nintendo",  start:2001, end:2007, color:"#7f1d1d", row:7 },
+  { name:"Wii",           company:"Nintendo",  start:2006, end:2013, color:"#6b7280", row:8 },
+  { name:"Wii U",         company:"Nintendo",  start:2012, end:2017, color:"#4b5563", row:7 },
+  { name:"Nintendo Switch",company:"Nintendo", start:2017, end:2026, color:"#dc2626", row:6 },
+  // Nintendo handheld
+  { name:"Game Boy",      company:"Nintendo",  start:1989, end:2003, color:"#6d28d9", row:9 },
+  { name:"GBA",           company:"Nintendo",  start:2001, end:2010, color:"#5b21b6", row:10 },
+  { name:"Nintendo DS",   company:"Nintendo",  start:2004, end:2014, color:"#4c1d95", row:11 },
+  { name:"Nintendo 3DS",  company:"Nintendo",  start:2011, end:2020, color:"#3b0764", row:10 },
+  // Sega home
+  { name:"Sega Genesis",  company:"Sega",      start:1989, end:1997, color:"#1d4ed8", row:12 },
+  { name:"Sega Saturn",   company:"Sega",      start:1995, end:1998, color:"#1e40af", row:13 },
+  { name:"Sega Dreamcast",company:"Sega",      start:1999, end:2001, color:"#1e3a8a", row:12 },
+  // Sega handheld
+  { name:"Game Gear",     company:"Sega",      start:1991, end:1997, color:"#2563eb", row:14 },
+  // NEC
+  { name:"TurboGrafx-16", company:"NEC",       start:1989, end:1994, color:"#059669", row:15 },
+  // SNK
+  { name:"Neo Geo",       company:"SNK",       start:1990, end:2004, color:"#047857", row:16 },
+  // 3DO
+  { name:"3DO",           company:"3DO Co.",   start:1993, end:1996, color:"#64748b", row:17 },
+  // Sony
+  { name:"PlayStation",   company:"Sony",      start:1995, end:2004, color:"#1d4ed8", row:18 },
+  { name:"PlayStation 2", company:"Sony",      start:2000, end:2013, color:"#1e3a8a", row:19 },
+  { name:"PSP",           company:"Sony",      start:2005, end:2014, color:"#1e40af", row:20 },
+  { name:"PlayStation 3", company:"Sony",      start:2006, end:2017, color:"#1d4ed8", row:21 },
+  { name:"PlayStation 4", company:"Sony",      start:2013, end:2021, color:"#3b82f6", row:22 },
+  { name:"PlayStation 5", company:"Sony",      start:2020, end:2026, color:"#60a5fa", row:21 },
+  // Microsoft
+  { name:"Xbox",          company:"Microsoft", start:2001, end:2009, color:"#16a34a", row:23 },
+  { name:"Xbox 360",      company:"Microsoft", start:2005, end:2016, color:"#15803d", row:24 },
+  { name:"Xbox One",      company:"Microsoft", start:2013, end:2020, color:"#166534", row:25 },
+  { name:"Xbox Series X", company:"Microsoft", start:2020, end:2026, color:"#14532d", row:24 },
+];
+
+// Genre color map
+const GENRE_COLORS = {
+  "Platformer":    "#f97316",
+  "Shooter":       "#ef4444",
+  "RPG":           "#8b5cf6",
+  "Fighting":      "#ec4899",
+  "Adventure":     "#3b82f6",
+  "Strategy":      "#10b981",
+  "Sports":        "#f59e0b",
+  "Racing":        "#f59e0b",
+  "Simulation":    "#06b6d4",
+  "Puzzle":        "#84cc16",
+  "Horror":        "#dc2626",
+  "Action":        "#fb923c",
+  "MMORPG":        "#a855f7",
+  "Battle Royale": "#f43f5e",
+  "Survival":      "#0ea5e9",
+  "Other":         "#a3a3a3",
+};
+
+// impact: 1–10, affects dot size
+const GAMES = [
+  // ─── 1970s ───
+  { title:"Pong",                      year:1972, platform:"Arcade",        genre:"Other",       impact:8,  desc:"The game that started it all — simple paddle tennis that birthed a billion-dollar industry." },
+  { title:"Space Invaders",            year:1978, platform:"Arcade",        genre:"Shooter",     impact:9,  desc:"Triggered the first video game boom; single-handedly caused a coin shortage in Japan." },
+  { title:"Asteroids",                 year:1979, platform:"Arcade",        genre:"Shooter",     impact:7,  desc:"Vector-graphics space shooter that became one of Atari's biggest arcade hits." },
+  // ─── 1980 ───
+  { title:"Pac-Man",                   year:1980, platform:"Arcade",        genre:"Other",       impact:10, desc:"The most recognized game character in history; first game with a true mass-market cultural crossover." },
+  { title:"Missile Command",           year:1980, platform:"Arcade",        genre:"Shooter",     impact:6,  desc:"Cold War anxiety made playable; a defining early Atari title." },
+  { title:"Battlezone",               year:1980, platform:"Arcade",        genre:"Shooter",     impact:6,  desc:"First true 3D first-person game, used 3D wireframe graphics decades before they were standard." },
+  // ─── 1981 ───
+  { title:"Donkey Kong",               year:1981, platform:"Arcade",        genre:"Platformer",  impact:9,  desc:"Introduced Mario (Jumpman) to the world; established the platformer genre." },
+  { title:"Galaga",                    year:1981, platform:"Arcade",        genre:"Shooter",     impact:7,  desc:"Refinement of Space Invaders that became one of the highest-grossing arcade games ever." },
+  { title:"Frogger",                   year:1981, platform:"Arcade",        genre:"Other",       impact:6,  desc:"Simple, addictive arcade classic that moved tens of millions of units." },
+  // ─── 1982 ───
+  { title:"Pitfall!",                  year:1982, platform:"Atari 2600",    genre:"Platformer",  impact:7,  desc:"Groundbreaking home console platformer that showed the 2600 could do more than Pong." },
+  { title:"Q*bert",                    year:1982, platform:"Arcade",        genre:"Other",       impact:6,  desc:"Beloved isometric puzzle-platformer with a unique control scheme." },
+  // ─── 1983 ───
+  { title:"Mario Bros.",               year:1983, platform:"Arcade",        genre:"Platformer",  impact:7,  desc:"First game to feature both Mario and Luigi; introduced co-op platforming." },
+  // ─── 1984 ───
+  { title:"Tetris",                    year:1984, platform:"PC",            genre:"Puzzle",      impact:10, desc:"Possibly the most played game in history. The perfect puzzle loop — simple, deep, infinite." },
+  { title:"Duck Hunt",                 year:1984, platform:"NES",           genre:"Shooter",     impact:6,  desc:"Bundled with the NES; the laughing dog haunted millions of childhoods." },
+  // ─── 1985 ───
+  { title:"Super Mario Bros.",         year:1985, platform:"NES",           genre:"Platformer",  impact:10, desc:"Defined the platformer genre and saved the North American video game industry after the 1983 crash." },
+  { title:"Ghosts 'n Goblins",        year:1985, platform:"Arcade",        genre:"Action",      impact:6,  desc:"Brutally difficult action game that established a legacy of challenging platformers." },
+  // ─── 1986 ───
+  { title:"The Legend of Zelda",       year:1986, platform:"NES",           genre:"Adventure",   impact:10, desc:"Invented the action-adventure genre; first major game with a save system, creating a world worth returning to." },
+  { title:"Metroid",                   year:1986, platform:"NES",           genre:"Adventure",   impact:8,  desc:"Atmospheric sci-fi exploration that co-invented 'Metroidvania'; featured a revolutionary plot twist." },
+  { title:"Mega Man",                  year:1987, platform:"NES",           genre:"Platformer",  impact:8,  desc:"Pioneered non-linear level selection and robot-master weapon stealing in a precision platformer." },
+  // ─── 1987 ───
+  { title:"Contra",                    year:1987, platform:"NES",           genre:"Shooter",     impact:8,  desc:"The Konami Code. Run-and-gun co-op masterpiece that defined the genre." },
+  { title:"Street Fighter",            year:1987, platform:"Arcade",        genre:"Fighting",    impact:7,  desc:"Established the 1v1 fighting game template that Street Fighter II would perfect." },
+  { title:"Final Fantasy",             year:1987, platform:"NES",           genre:"RPG",         impact:9,  desc:"Square's last-ditch effort to survive — it worked. Launched one of gaming's most beloved franchises." },
+  // ─── 1988 ───
+  { title:"Super Mario Bros. 3",       year:1988, platform:"NES",           genre:"Platformer",  impact:10, desc:"Widely considered the greatest NES game; its North American release was a cultural event — NES kids remember it." },
+  // ─── 1989 ───
+  { title:"SimCity",                   year:1989, platform:"PC",            genre:"Simulation",  impact:8,  desc:"Founded the city-builder genre and proved games didn't need a win condition." },
+  { title:"Prince of Persia",          year:1989, platform:"PC",            genre:"Platformer",  impact:7,  desc:"Fluid rotoscoped animation redefined how platformers could look and feel." },
+  { title:"Tetris (Game Boy)",         year:1989, platform:"Game Boy",      genre:"Puzzle",      impact:9,  desc:"Bundled with Game Boy; sold the handheld to a generation of commuters and kids alike." },
+  // ─── 1990 ───
+  { title:"Super Mario Bros. 2",       year:1990, platform:"NES",           genre:"Platformer",  impact:6,  desc:"The odd one out in the Mario series — originally a completely different Japanese game." },
+  { title:"Dr. Mario",                 year:1990, platform:"NES",           genre:"Puzzle",      impact:5,  desc:"Nintendo's answer to Tetris — a puzzle game with medical theming and addictive gameplay." },
+  // ─── 1991 ───
+  { title:"Street Fighter II",         year:1991, platform:"Arcade",        genre:"Fighting",    impact:10, desc:"Defined the fighting game genre and the entire 90s arcade scene. Special moves, combos, competitive play — all from this." },
+  { title:"Sonic the Hedgehog",        year:1991, platform:"Sega Genesis",  genre:"Platformer",  impact:9,  desc:"Sega's answer to Mario — speed over precision. Launched the great Nintendo vs. Sega console war." },
+  { title:"The Legend of Zelda: A Link to the Past", year:1991, platform:"SNES", genre:"Adventure", impact:10, desc:"The blueprint for all Zelda games that followed. Rich world, dungeons, story — top-down action-adventure perfected." },
+  // ─── 1992 ───
+  { title:"Mortal Kombat",             year:1992, platform:"Arcade",        genre:"Fighting",    impact:9,  desc:"Digitized fighters and brutal fatalities caused a Senate hearing and directly led to the ESRB rating system." },
+  { title:"Wolfenstein 3D",            year:1992, platform:"PC",            genre:"Shooter",     impact:9,  desc:"Invented the first-person shooter genre. id Software's game changed everything about PC gaming." },
+  { title:"Super Mario Kart",          year:1992, platform:"SNES",          genre:"Racing",      impact:9,  desc:"Created the kart racing genre; remains one of the best-selling game franchises of all time." },
+  // ─── 1993 ───
+  { title:"Doom",                      year:1993, platform:"PC",            genre:"Shooter",     impact:10, desc:"Popularized multiplayer deathmatches, moddability, and shareware distribution. The FPS bible." },
+  { title:"Star Fox",                  year:1993, platform:"SNES",          genre:"Shooter",     impact:7,  desc:"First SNES game with a 3D polygon engine (Super FX chip); beloved rail shooter." },
+  { title:"NBA Jam",                   year:1993, platform:"Arcade",        genre:"Sports",      impact:7,  desc:"'Boomshakalaka!' Two-on-two basketball with outrageous dunks — the peak of arcade sports." },
+  { title:"Myst",                      year:1993, platform:"PC",            genre:"Puzzle",      impact:8,  desc:"Best-selling PC game of the 90s; atmospheric pre-rendered point-and-click adventure that made CD-ROM mainstream." },
+  // ─── 1994 ───
+  { title:"Donkey Kong Country",       year:1994, platform:"SNES",          genre:"Platformer",  impact:9,  desc:"Pre-rendered 3D graphics that made the SNES look next-gen; showed what 16-bit could do in its twilight." },
+  { title:"Final Fantasy VI",          year:1994, platform:"SNES",          genre:"RPG",         impact:10, desc:"Peak 16-bit storytelling; operatic narrative with an ensemble cast and one of gaming's greatest villains." },
+  { title:"Super Metroid",             year:1994, platform:"SNES",          genre:"Adventure",   impact:10, desc:"Atmospheric exploration perfected. One of the most influential games ever made — still the Metroidvania standard." },
+  { title:"Earthbound",                year:1994, platform:"SNES",          genre:"RPG",         impact:8,  desc:"Subversive, weird, heartfelt RPG set in modern America. A cult classic that spawned a fanbase of missionaries." },
+  // ─── 1995 ───
+  { title:"Chrono Trigger",            year:1995, platform:"SNES",          genre:"RPG",         impact:10, desc:"The greatest SNES RPG — time travel, multiple endings, dream team of Toriyama/Sakaguchi/Horii. Often called perfect." },
+  { title:"Rayman",                    year:1995, platform:"PlayStation",   genre:"Platformer",  impact:6,  desc:"Limb-free hero in a beautifully hand-drawn world; Ubisoft's mascot debut." },
+  { title:"Command & Conquer",         year:1995, platform:"PC",            genre:"Strategy",    impact:8,  desc:"Defined the real-time strategy genre for a decade; the rival to Warcraft II." },
+  { title:"Warcraft II",               year:1995, platform:"PC",            genre:"Strategy",    impact:8,  desc:"Cemented Blizzard as a powerhouse; rich lore and addictive RTS gameplay." },
+  // ─── 1996 ───
+  { title:"Super Mario 64",            year:1996, platform:"Nintendo 64",   genre:"Platformer",  impact:10, desc:"The first true 3D platformer. Redefined how games work in three dimensions. Every 3D game since owes it a debt." },
+  { title:"Pokémon Red/Blue",          year:1996, platform:"Game Boy",      genre:"RPG",         impact:10, desc:"Launched the biggest media franchise in history. 'Gotta catch 'em all' defined a generation's childhood." },
+  { title:"Quake",                     year:1996, platform:"PC",            genre:"Shooter",     impact:9,  desc:"True 3D FPS with online multiplayer; id Software's follow-up to Doom transformed PC gaming." },
+  { title:"Crash Bandicoot",           year:1996, platform:"PlayStation",   genre:"Platformer",  impact:8,  desc:"Sony's mascot answer to Mario; gorgeous 3D platformer that showcased the PS1's power." },
+  { title:"Diablo",                    year:1996, platform:"PC",            genre:"RPG",         impact:9,  desc:"Invented the action RPG loot loop that still drives games today. Dark, addictive, revolutionary." },
+  { title:"Duke Nukem 3D",             year:1996, platform:"PC",            genre:"Shooter",     impact:7,  desc:"3D Realms' hyper-masculine FPS that pushed boundaries and made the genre mainstream." },
+  { title:"Resident Evil",             year:1996, platform:"PlayStation",   genre:"Horror",      impact:9,  desc:"Defined survival horror as a genre; fixed camera, tank controls, limited ammo — genuinely terrifying." },
+  // ─── 1997 ───
+  { title:"Final Fantasy VII",         year:1997, platform:"PlayStation",   genre:"RPG",         impact:10, desc:"The RPG that made the genre mainstream in the West. Cinematic storytelling, CD-ROM scale, Aerith's death." },
+  { title:"GoldenEye 007",             year:1997, platform:"Nintendo 64",   genre:"Shooter",     impact:10, desc:"Invented the modern console FPS and couch multiplayer deathmatches. Every FPS until Halo owes it everything." },
+  { title:"Castlevania: SotN",         year:1997, platform:"PlayStation",   genre:"Adventure",   impact:10, desc:"'Metroidvania' pinnacle — a vast gothic castle, RPG progression, and one of gaming's greatest twists." },
+  { title:"StarCraft",                 year:1997, platform:"PC",            genre:"Strategy",    impact:10, desc:"Defined competitive RTS; became South Korea's national sport. A perfectly balanced three-faction masterpiece." },
+  { title:"Fallout",                   year:1997, platform:"PC",            genre:"RPG",         impact:9,  desc:"Isometric post-apocalyptic RPG with meaningful choices; launched a franchise still thriving today." },
+  { title:"Age of Empires",            year:1997, platform:"PC",            genre:"Strategy",    impact:8,  desc:"History-based RTS that defined Microsoft's game output for years." },
+  // ─── 1998 ───
+  { title:"The Legend of Zelda: OoT",  year:1998, platform:"Nintendo 64",   genre:"Adventure",   impact:10, desc:"Highest-rated game in history. Invented Z-targeting, narrative 3D structure — still the benchmark for game design." },
+  { title:"Metal Gear Solid",          year:1998, platform:"PlayStation",   genre:"Adventure",   impact:10, desc:"Cinematic storytelling, stealth mechanics, fourth-wall-breaking — MGS changed what games could say." },
+  { title:"Half-Life",                 year:1998, platform:"PC",            genre:"Shooter",     impact:10, desc:"Revolutionary FPS with environmental storytelling; no cutscenes, just Gordon Freeman's wordless journey." },
+  { title:"Baldur's Gate",             year:1998, platform:"PC",            genre:"RPG",         impact:9,  desc:"Revived the western CRPG; Black Isle's adaptation of D&D set the template for RPGs for two decades." },
+  { title:"Pokémon Yellow",            year:1998, platform:"Game Boy",      genre:"RPG",         impact:8,  desc:"Pikachu follows you everywhere — the Pokémon Anime tie-in that made the franchise unbeatable." },
+  { title:"StarCraft",                 year:1998, platform:"PC",            genre:"Strategy",    impact:10, desc:"Three asymmetric factions, perfect balance, incredible campaign — RTS godhood." },
+  { title:"Banjo-Kazooie",             year:1998, platform:"Nintendo 64",   genre:"Platformer",  impact:8,  desc:"Rare's platformer gem — inventive worlds, bear & bird duo, and humor that still lands." },
+  // ─── 1999 ───
+  { title:"Super Smash Bros.",         year:1999, platform:"Nintendo 64",   genre:"Fighting",    impact:9,  desc:"Party fighting game unlike anything before — Nintendo characters brawling. Invented a new genre." },
+  { title:"Pokémon Gold/Silver",       year:1999, platform:"Game Boy",      genre:"RPG",         impact:9,  desc:"Two regions, real-time clock, 251 Pokémon — arguably the peak of the series." },
+  { title:"Tony Hawk's Pro Skater",    year:1999, platform:"PlayStation",   genre:"Sports",      impact:9,  desc:"Made skateboarding mainstream and introduced a generation to punk/hip-hop music. THPS soundtrack is iconic." },
+  { title:"System Shock 2",           year:1999, platform:"PC",            genre:"Horror",      impact:8,  desc:"Pioneered immersive sim design; SHODAN is one of gaming's greatest antagonists." },
+  { title:"Shenmue",                   year:1999, platform:"Dreamcast",     genre:"Adventure",   impact:8,  desc:"Most expensive game ever made at the time; invented the open-world RPG format and quick-time events." },
+  // ─── 2000 ───
+  { title:"Diablo II",                 year:2000, platform:"PC",            genre:"RPG",         impact:10, desc:"The loot loop perfected. Millions of hours lost to Baal runs and ladder seasons. Still played today." },
+  { title:"The Sims",                  year:2000, platform:"PC",            genre:"Simulation",  impact:10, desc:"Best-selling PC franchise of all time; made games accessible to a new demographic — especially women." },
+  { title:"Deus Ex",                   year:2000, platform:"PC",            genre:"Adventure",   impact:9,  desc:"Immersive sim that blended FPS, RPG, and stealth with a prescient story about government surveillance." },
+  { title:"Counter-Strike",            year:2000, platform:"PC",            genre:"Shooter",     impact:10, desc:"The most popular online FPS ever. Started as a Half-Life mod; reshaped competitive gaming." },
+  { title:"Majora's Mask",             year:2000, platform:"Nintendo 64",   genre:"Adventure",   impact:9,  desc:"OoT's dark, emotionally complex sibling — three-day loop, impending apocalypse, surprisingly deep." },
+  // ─── 2001 ───
+  { title:"Halo: Combat Evolved",      year:2001, platform:"Xbox",          genre:"Shooter",     impact:10, desc:"Defined console FPS and launched Xbox. The reason to own Microsoft's first console; couch LAN parties everywhere." },
+  { title:"Grand Theft Auto III",      year:2001, platform:"PlayStation 2", genre:"Action",      impact:10, desc:"Invented the open-world sandbox genre. Complete freedom to do anything — nothing in gaming was the same after." },
+  { title:"Metal Gear Solid 2",        year:2001, platform:"PlayStation 2", genre:"Adventure",   impact:9,  desc:"Postmodern deconstruction of gaming tropes; the Raiden bait-and-switch was a cultural moment." },
+  { title:"Final Fantasy X",           year:2001, platform:"PlayStation 2", genre:"RPG",         impact:9,  desc:"First FF with voice acting and fully 3D world; Tidus and Yuna's love story moved millions." },
+  { title:"Super Smash Bros. Melee",   year:2001, platform:"GameCube",      genre:"Fighting",    impact:9,  desc:"The competitive fighting game with the deepest skill floor; still played at tournaments 20+ years later." },
+  { title:"ICO",                       year:2001, platform:"PlayStation 2", genre:"Adventure",   impact:8,  desc:"Art-game before art-games were a thing; light puzzle design, holding hands, minimalist beauty." },
+  { title:"Max Payne",                 year:2001, platform:"PC",            genre:"Shooter",     impact:7,  desc:"Bullet time in games; noir-drenched TPS that made Remedy a household name among PC gamers." },
+  // ─── 2002 ───
+  { title:"Morrowind",                 year:2002, platform:"PC",            genre:"RPG",         impact:9,  desc:"Open-world RPG that gave players true freedom; modding community still active two decades later." },
+  { title:"Warcraft III",              year:2002, platform:"PC",            genre:"Strategy",    impact:9,  desc:"RTS with RPG hero units; custom maps led directly to DotA, which led to an entire MOBA genre." },
+  { title:"Kingdom Hearts",            year:2002, platform:"PlayStation 2", genre:"RPG",         impact:8,  desc:"Disney + Square Enix = a universe crossover that shouldn't work but absolutely does. Beloved worldwide." },
+  { title:"Metroid Prime",             year:2002, platform:"GameCube",      genre:"Adventure",   impact:9,  desc:"Translated Metroid perfectly to 3D FPS; atmosphere, lore scanning, isolation — still a top-tier game." },
+  // ─── 2003 ───
+  { title:"KOTOR",                     year:2003, platform:"Xbox",          genre:"RPG",         impact:9,  desc:"BioWare's Star Wars RPG; introduced the twist-ending moral choice RPG format that BioWare would perfect." },
+  { title:"The Wind Waker",            year:2003, platform:"GameCube",      genre:"Adventure",   impact:8,  desc:"Divisive cel-shading at launch; now seen as one of the most beautiful games ever made." },
+  { title:"Prince of Persia: SoT",    year:2003, platform:"PlayStation 2", genre:"Platformer",  impact:8,  desc:"Time-rewinding mechanics revolutionized action platformers; one of Ubisoft's greatest achievements." },
+  { title:"Call of Duty",              year:2003, platform:"PC",            genre:"Shooter",     impact:8,  desc:"WWII FPS that would eventually dominate console multiplayer; Infinity Ward's origin." },
+  // ─── 2004 ───
+  { title:"Half-Life 2",              year:2004, platform:"PC",            genre:"Shooter",     impact:10, desc:"The Gravity Gun. City 17. The Combine. Still the gold standard for environmental storytelling in FPS." },
+  { title:"World of Warcraft",         year:2004, platform:"PC",            genre:"MMORPG",      impact:10, desc:"Peak game as social phenomenon — 12 million subscribers, lost friendships, parents interventions. It consumed lives." },
+  { title:"Halo 2",                    year:2004, platform:"Xbox",          genre:"Shooter",     impact:9,  desc:"Xbox Live multiplayer made online console gaming mainstream; the FPS that killed LAN parties." },
+  { title:"GTA: San Andreas",          year:2004, platform:"PlayStation 2", genre:"Action",      impact:10, desc:"The biggest GTA map ever; customizable protagonist, gang wars, RPG stats. Peak of the PS2 era." },
+  { title:"Metal Gear Solid 3",        year:2004, platform:"PlayStation 2", genre:"Adventure",   impact:9,  desc:"Jungle stealth prequel; The Sorrow, The Boss sacrifice — MGS3 has gaming's most emotional ending." },
+  { title:"Doom 3",                    year:2004, platform:"PC",            genre:"Horror",      impact:7,  desc:"Survival horror reboot of id's classic — technically stunning for its time, polarizing for fans." },
+  // ─── 2005 ───
+  { title:"God of War",                year:2005, platform:"PlayStation 2", genre:"Action",      impact:9,  desc:"Brutal mythological action on a cinematic scale; set the template for third-person action-adventure." },
+  { title:"Resident Evil 4",           year:2005, platform:"GameCube",      genre:"Horror",      impact:10, desc:"Reinvented RE and third-person shooters at once; over-the-shoulder aiming is now the genre standard." },
+  { title:"Shadow of the Colossus",    year:2005, platform:"PlayStation 2", genre:"Adventure",   impact:10, desc:"Pure art — 16 boss battles and nothing else. A meditation on heroism, regret, and the nature of monsters." },
+  { title:"Guitar Hero",               year:2005, platform:"PlayStation 2", genre:"Other",       impact:9,  desc:"Plastic guitars invaded every living room; rhythm game as social event. Rock Band would follow." },
+  // ─── 2006 ───
+  { title:"Gears of War",              year:2006, platform:"Xbox 360",      genre:"Shooter",     impact:9,  desc:"Popularized cover-based shooters and the gritty HD aesthetic that defined 360/PS3 era design." },
+  { title:"The Elder Scrolls IV: Oblivion", year:2006, platform:"Xbox 360", genre:"RPG",         impact:8,  desc:"Open-world RPG that showed what HD consoles could do; Radiant AI, construction set, and a $3 horse armor." },
+  { title:"Wii Sports",                year:2006, platform:"Wii",           genre:"Sports",      impact:9,  desc:"Bundled with Wii; the game that brought gaming to grandmothers. Changed who 'gamers' could be." },
+  { title:"The Legend of Zelda: TP",  year:2006, platform:"Wii",           genre:"Adventure",   impact:8,  desc:"Twilight Princess went dark and mature — fan wish fulfillment on two platforms simultaneously." },
+  { title:"Okami",                     year:2006, platform:"PlayStation 2", genre:"Adventure",   impact:8,  desc:"Watercolor art style, Zelda-like gameplay, Japanese mythology — a masterpiece lost to low sales." },
+  // ─── 2007 ───
+  { title:"BioShock",                  year:2007, platform:"Xbox 360",      genre:"Shooter",     impact:10, desc:"Rapture. Objectivism. 'Would you kindly.' FPS as philosophical essay — narrative game design at its peak." },
+  { title:"Halo 3",                    year:2007, platform:"Xbox 360",      genre:"Shooter",     impact:8,  desc:"'Finish the fight' — cultural moment for Xbox; bungie's trilogy closer with co-op Forge. " },
+  { title:"CoD 4: Modern Warfare",     year:2007, platform:"Xbox 360",      genre:"Shooter",     impact:10, desc:"Transformed CoD into a console titan; killstreak rewards, leveling — the multiplayer loop that ate a decade." },
+  { title:"Portal",                    year:2007, platform:"PC",            genre:"Puzzle",      impact:10, desc:"GlaDOS. Cake. Spatial reasoning puzzles. Possibly the greatest short game ever made. 'Still Alive.'" },
+  { title:"Mass Effect",               year:2007, platform:"Xbox 360",      genre:"RPG",         impact:9,  desc:"BioWare's sci-fi RPG introduced persistent choices across a trilogy — the most ambitious RPG narrative ever." },
+  { title:"Super Mario Galaxy",        year:2007, platform:"Wii",           genre:"Platformer",  impact:10, desc:"Gravity-bending 3D platforming; tied with Odyssey as Mario's best 3D game. Orchestral score is stunning." },
+  { title:"Crysis",                    year:2007, platform:"PC",            genre:"Shooter",     impact:8,  desc:"'Can it run Crysis?' — the graphics benchmark game that pushed PC hardware for a generation." },
+  { title:"The Witcher",               year:2007, platform:"PC",            genre:"RPG",         impact:7,  desc:"CD Projekt Red's debut; morally grey choices in a dark fantasy world that would become a juggernaut." },
+  // ─── 2008 ───
+  { title:"Grand Theft Auto IV",       year:2008, platform:"PlayStation 3", genre:"Action",      impact:9,  desc:"Niko Bellic's immigrant story; a more serious, cinematic GTA that pushed PS3/360 to their limits." },
+  { title:"Metal Gear Solid 4",        year:2008, platform:"PlayStation 3", genre:"Adventure",   impact:9,  desc:"Kojima's opus — absurdly cinematic conclusion to the Snake saga, 90-minute cutscenes and all." },
+  { title:"Fallout 3",                 year:2008, platform:"Xbox 360",      genre:"RPG",         impact:9,  desc:"Bethesda's take on Fallout — open-world post-apocalyptic Washington D.C.; revived the franchise for a new era." },
+  { title:"Left 4 Dead",               year:2008, platform:"PC",            genre:"Shooter",     impact:8,  desc:"Co-op zombie survival with AI Director — no two playthroughs the same. Defined a co-op genre." },
+  { title:"LittleBigPlanet",           year:2008, platform:"PlayStation 3", genre:"Platformer",  impact:7,  desc:"User-generated content platformer that showed players could be developers." },
+  // ─── 2009 ───
+  { title:"Uncharted 2",               year:2009, platform:"PlayStation 3", genre:"Adventure",   impact:9,  desc:"Set a new bar for cinematic action-adventure; Nathan Drake's greatest adventure on PS3." },
+  { title:"Batman: Arkham Asylum",     year:2009, platform:"Xbox 360",      genre:"Action",      impact:9,  desc:"Proved superhero games could be brilliant; Freeflow combat system influenced action games for a decade." },
+  { title:"Assassin's Creed II",       year:2009, platform:"Xbox 360",      genre:"Action",      impact:8,  desc:"Renaissance Italy parkour open-world; Ezio Auditore's arc is Ubisoft's finest storytelling." },
+  { title:"Dragon Age: Origins",       year:2009, platform:"PC",            genre:"RPG",         impact:8,  desc:"BioWare's dark fantasy CRPG — tactical combat, meaningful party decisions, deep lore." },
+  { title:"Demon's Souls",             year:2009, platform:"PlayStation 3", genre:"RPG",         impact:9,  desc:"FromSoftware's brutal origin — asynchronous multiplayer, death as punishment, rewarding mastery. It all starts here." },
+  // ─── 2010 ───
+  { title:"Red Dead Redemption",       year:2010, platform:"Xbox 360",      genre:"Action",      impact:10, desc:"The great American Western game. John Marston's story hits like a film; a Rockstar masterpiece." },
+  { title:"Mass Effect 2",             year:2010, platform:"Xbox 360",      genre:"RPG",         impact:10, desc:"Suicide mission. The perfect sequel — streamlined, emotional, every choice mattering. Peak BioWare." },
+  { title:"Starcraft II",              year:2010, platform:"PC",            genre:"Strategy",    impact:8,  desc:"The most-watched esport of its era; Wings of Liberty brought StarCraft's competitive scene to the web." },
+  { title:"Minecraft",                 year:2010, platform:"PC",            genre:"Simulation",  impact:10, desc:"The best-selling game in history. Sandbox creativity that transcended gaming — a cultural institution." },
+  { title:"God of War III",            year:2010, platform:"PlayStation 3", genre:"Action",      impact:8,  desc:"Spectacular Olympus-storming finale; technically the most impressive PS3 game at launch." },
+  // ─── 2011 ───
+  { title:"The Elder Scrolls V: Skyrim", year:2011, platform:"Xbox 360",   genre:"RPG",         impact:10, desc:"'SKYRIM!' Ubiquitous open-world epic; ported to everything. Defined the 2010s 'check list' open world." },
+  { title:"Portal 2",                  year:2011, platform:"PC",            genre:"Puzzle",      impact:9,  desc:"Expanded co-op puzzle design and gave GlaDOS a backstory. Possibly Valve's greatest achievement." },
+  { title:"Dark Souls",                year:2011, platform:"Xbox 360",      genre:"RPG",         impact:10, desc:"'Praise the sun.' FromSoftware's masterwork — interconnected world design, no hand-holding, death as learning." },
+  { title:"Batman: Arkham City",       year:2011, platform:"Xbox 360",      genre:"Action",      impact:8,  desc:"Open Gotham City with the entire Batman rogues gallery — Rocksteady's finest." },
+  // ─── 2012 ───
+  { title:"Journey",                   year:2012, platform:"PlayStation 3", genre:"Adventure",   impact:9,  desc:"Emotional multiplayer without words; two strangers sharing a wordless trek through ruins. Interactive art." },
+  { title:"Mass Effect 3",             year:2012, platform:"Xbox 360",      genre:"RPG",         impact:8,  desc:"The controversial ending notwithstanding — the journey through a galactic war remains BioWare's epic." },
+  { title:"Dishonored",                year:2012, platform:"Xbox 360",      genre:"Adventure",   impact:8,  desc:"Steampunk immersive sim with a chaos system — Arkane's love letter to Thief and Deus Ex." },
+  { title:"Borderlands 2",             year:2012, platform:"Xbox 360",      genre:"Shooter",     impact:7,  desc:"Handsome Jack. Loot-driven co-op FPS that perfected the looter-shooter formula." },
+  // ─── 2013 ───
+  { title:"The Last of Us",            year:2013, platform:"PlayStation 3", genre:"Adventure",   impact:10, desc:"Joel and Ellie. Naughty Dog's apocalypse — the moment games unambiguously became the equal of film." },
+  { title:"Grand Theft Auto V",        year:2013, platform:"PlayStation 3", genre:"Action",      impact:10, desc:"Three protagonists, online mode that became a game within a game. The most profitable entertainment product ever." },
+  { title:"BioShock Infinite",         year:2013, platform:"Xbox 360",      genre:"Shooter",     impact:9,  desc:"Columbia in the sky; Elizabeth companion AI; a mind-bending multiverse conclusion to Irrational's vision." },
+  { title:"Hearthstone",               year:2014, platform:"PC",            genre:"Strategy",    impact:7,  desc:"Blizzard's digital card game made CCGs accessible to everyone; free-to-play done right (initially)." },
+  // ─── 2014 ───
+  { title:"Dark Souls II",             year:2014, platform:"PlayStation 3", genre:"RPG",         impact:7,  desc:"Expanded the Souls formula with more build variety; contested by purists, beloved by many." },
+  { title:"Destiny",                   year:2014, platform:"PlayStation 4", genre:"Shooter",     impact:7,  desc:"Bungie post-Halo — ambitious shared-world shooter that created the looter-shooter hybrid genre." },
+  // ─── 2015 ───
+  { title:"The Witcher 3: Wild Hunt",  year:2015, platform:"PlayStation 4", genre:"RPG",         impact:10, desc:"The greatest open-world RPG ever made. 200 hours of morally complex quests; Gwent; Geralt. GOTY of the decade." },
+  { title:"Undertale",                 year:2015, platform:"PC",            genre:"RPG",         impact:9,  desc:"Indie sensation — subversive bullet-hell RPG about choice, mercy, and what it means to be the hero." },
+  { title:"Bloodborne",                year:2015, platform:"PlayStation 4", genre:"RPG",         impact:9,  desc:"Gothic Lovecraftian horror Souls — faster, more aggressive, and with a lore that fans still decode." },
+  { title:"Fallout 4",                 year:2015, platform:"PlayStation 4", genre:"RPG",         impact:7,  desc:"Bethesda's most streamlined Fallout — settlement building, voiced protagonist, sprawling Commonwealth." },
+  { title:"Metal Gear Solid V",        year:2015, platform:"PlayStation 4", genre:"Action",      impact:8,  desc:"Open-world stealth perfected, even without a satisfying ending. The gameplay loop is unmatched." },
+  // ─── 2016 ───
+  { title:"Overwatch",                 year:2016, platform:"PC",            genre:"Shooter",     impact:9,  desc:"Team-based hero shooter that dominated streaming and esports; Blizzard's last cultural phenomenon." },
+  { title:"Dark Souls III",            year:2016, platform:"PlayStation 4", genre:"RPG",         impact:8,  desc:"Fan-service finale to the Souls trilogy; hardest entry, most refined combat, farewell to Lordran." },
+  { title:"Doom (2016)",               year:2016, platform:"PlayStation 4", genre:"Shooter",     impact:9,  desc:"id Software's resurrection of their franchise — rip-and-tear glory. Reignited classic FPS sensibility." },
+  { title:"Stardew Valley",            year:2016, platform:"PC",            genre:"Simulation",  impact:9,  desc:"Solo dev passion project — farming RPG that outsold AAA games and proved indie could be anything." },
+  { title:"Uncharted 4",               year:2016, platform:"PlayStation 4", genre:"Adventure",   impact:8,  desc:"Nathan Drake's farewell — PS4's technical showpiece and an emotional send-off to the series." },
+  // ─── 2017 ───
+  { title:"The Legend of Zelda: BotW", year:2017, platform:"Nintendo Switch",genre:"Adventure",  impact:10, desc:"Redefined open-world games — true freedom, physics sandbox, emergent play. Best game of the 2010s." },
+  { title:"Super Mario Odyssey",       year:2017, platform:"Nintendo Switch",genre:"Platformer",  impact:9,  desc:"Mario's greatest 3D adventure since 64; sandbox worlds packed with inventive Cappy-capture mechanics." },
+  { title:"Nier: Automata",            year:2017, platform:"PlayStation 4", genre:"Action",      impact:9,  desc:"Yoko Taro's philosophical action RPG; multiple endings, existential Android narrative. Gaming as literature." },
+  { title:"Hollow Knight",             year:2017, platform:"PC",            genre:"Adventure",   impact:9,  desc:"Indie Metroidvania masterpiece — hand-drawn, vast, melancholy. Proof the genre never needed to evolve, just grow." },
+  { title:"Cuphead",                   year:2017, platform:"PC",            genre:"Action",      impact:8,  desc:"Hand-animated 1930s cartoon aesthetic meets brutal boss-rush gameplay. An artistic and mechanical triumph." },
+  { title:"Horizon Zero Dawn",         year:2017, platform:"PlayStation 4", genre:"Action",      impact:8,  desc:"Robot dinosaurs in a far-future Earth; Guerrilla's open-world debut was a stunning visual and narrative achievement." },
+  { title:"PlayerUnknown's BG",        year:2017, platform:"PC",            genre:"Battle Royale",impact:9,  desc:"Invented battle royale as a mainstream genre; 100 players, one winner — spawned Fortnite and a genre explosion." },
+  // ─── 2018 ───
+  { title:"God of War (2018)",         year:2018, platform:"PlayStation 4", genre:"Action",      impact:10, desc:"Reinvented the franchise — Norse mythology, Kratos as father, single long take. PS4's defining game." },
+  { title:"Red Dead Redemption 2",     year:2018, platform:"PlayStation 4", genre:"Action",      impact:10, desc:"Arthur Morgan's decline — the most detailed open world ever built. Rockstar's magnum opus. A tragedy." },
+  { title:"Marvel's Spider-Man",       year:2018, platform:"PlayStation 4", genre:"Action",      impact:8,  desc:"Insomniac's take on the web-slinger — fluid traversal, heartfelt story. Best superhero game since Arkham." },
+  { title:"Monster Hunter: World",     year:2018, platform:"PlayStation 4", genre:"Action",      impact:8,  desc:"Made Monster Hunter accessible globally; satisfying loop of hunt, craft, repeat at console scale." },
+  { title:"Celeste",                   year:2018, platform:"PC",            genre:"Platformer",  impact:8,  desc:"Precision platformer about anxiety and self-doubt; the mechanics are the metaphor. Extraordinary indie." },
+  { title:"Fortnite",                  year:2018, platform:"PC",            genre:"Battle Royale",impact:10, desc:"Free-to-play cultural phenomenon; Gen Z's Minecraft — shared event space, crossovers, world-building." },
+  // ─── 2019 ───
+  { title:"Sekiro: Shadows Die Twice", year:2019, platform:"PlayStation 4", genre:"Action",      impact:9,  desc:"FromSoftware's most mechanically demanding game; parry-based samurai combat with no builds — pure skill." },
+  { title:"Death Stranding",           year:2019, platform:"PlayStation 4", genre:"Adventure",   impact:8,  desc:"Kojima's love letter to connection — hiking and delivery in a fractured America; divisive and profound." },
+  { title:"Control",                   year:2019, platform:"PlayStation 4", genre:"Action",      impact:8,  desc:"Remedy's supernatural brutalist-art masterpiece; the Federal Bureau of Control's mysteries are endlessly deep." },
+  { title:"Hades",                     year:2019, platform:"PC",            genre:"Action",      impact:9,  desc:"Supergiant's roguelite — every run moves the story; may be the most perfectly crafted game ever made." },
+  // ─── 2020 ───
+  { title:"Ghost of Tsushima",         year:2020, platform:"PlayStation 4", genre:"Action",      impact:8,  desc:"Feudal Japan samurai epic; kurosawa mode, wind-guided exploration, and stunning visual design." },
+  { title:"The Last of Us Part II",    year:2020, platform:"PlayStation 4", genre:"Adventure",   impact:9,  desc:"Brutal, controversial, bold — Naughty Dog's most technically accomplished game and most divisive story." },
+  { title:"Cyberpunk 2077",            year:2020, platform:"PC",            genre:"RPG",         impact:8,  desc:"Night City is a masterpiece of world-building; the troubled launch couldn't hide CDPR's ambition long." },
+  // ─── 2021 ───
+  { title:"Deathloop",                 year:2021, platform:"PlayStation 5", genre:"Shooter",     impact:7,  desc:"Arkane's time-loop immersive sim — stylish 60s aesthetic, clever asymmetric multiplayer design." },
+  { title:"Metroid Dread",             year:2021, platform:"Nintendo Switch",genre:"Adventure",   impact:8,  desc:"Long-awaited 2D Metroid sequel — E.M.M.I. stalkers, fluid movement, satisfying 2D return for the series." },
+  // ─── 2022 ───
+  { title:"Elden Ring",                year:2022, platform:"PlayStation 5", genre:"RPG",         impact:10, desc:"FromSoftware + George R.R. Martin. Open-world Souls. GOTY by consensus — the masterwork of a generation." },
+  { title:"God of War: Ragnarök",      year:2022, platform:"PlayStation 5", genre:"Action",      impact:9,  desc:"Kratos and Atreus vs. the Norse apocalypse; matched the 2018 game's emotional heights. Freya's arc." },
+  { title:"Stray",                     year:2022, platform:"PlayStation 5", genre:"Adventure",   impact:7,  desc:"You're a cat. That's it. BlueTwelve's cyberpunk cat game captured the world's heart." },
+  // ─── 2023 ───
+  { title:"Zelda: Tears of the Kingdom",year:2023,platform:"Nintendo Switch",genre:"Adventure",  impact:10, desc:"Built on BotW but became its own thing — Ultrahand building, sky islands, time mechanics. Another masterwork." },
+  { title:"Baldur's Gate 3",           year:2023, platform:"PC",            genre:"RPG",         impact:10, desc:"Larian's D&D RPG set a new bar for CRPG depth; the most complete RPG ever made. GOTY 2023 unanimously." },
+  { title:"Alan Wake 2",               year:2023, platform:"PlayStation 5", genre:"Horror",      impact:8,  desc:"Remedy's multiverse thriller — live-action sequences, dark place, Alan and Saga. Auteur gaming at peak." },
+  { title:"Hogwarts Legacy",           year:2023, platform:"PlayStation 5", genre:"RPG",         impact:7,  desc:"Open-world Wizarding World RPG; controversial release overshadowed by record-breaking sales." },
+  // ─── 2024 ───
+  { title:"Astro Bot",                 year:2024, platform:"PlayStation 5", genre:"Platformer",  impact:9,  desc:"Team Asobi's love letter to PlayStation history — tactile DualSense platforming. GOTY 2024." },
+  { title:"Balatro",                   year:2024, platform:"PC",            genre:"Strategy",    impact:8,  desc:"Roguelite poker deckbuilder that became the indie surprise of the year; impossible to stop playing." },
+  { title:"Black Myth: Wukong",        year:2024, platform:"PlayStation 5", genre:"Action",      impact:8,  desc:"First major AAA game from China; stunning Journey to the West adaptation with Souls-like combat." },
+  { title:"Space Marine 2",           year:2024, platform:"PlayStation 5", genre:"Action",      impact:7,  desc:"Warhammer 40K third-person shooter that exceeded all expectations; co-op at its finest." },
+];
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+const PX_PER_YEAR = 46;
+const START_YEAR  = 1970;
+const END_YEAR    = 2026;
+const TOTAL_YEARS = END_YEAR - START_YEAR;
+const TIMELINE_W  = TOTAL_YEARS * PX_PER_YEAR;
+const WINDOW_YEARS  = 15;
+const EARLY_YEARS   = 5;
+const GAMING_YEARS  = 10;
+const WINDOW_W      = WINDOW_YEARS * PX_PER_YEAR;
+const EARLY_W       = EARLY_YEARS * PX_PER_YEAR;
+const GAMING_W      = GAMING_YEARS * PX_PER_YEAR;
+
+// console rendering
+const CON_ROW_H    = 18;
+const CON_ROW_GAP  = 2;
+const CON_BAR_H    = 16;
+const NUM_CON_ROWS = 26;
+const CONSOLE_SECTION_H = NUM_CON_ROWS * (CON_ROW_H + CON_ROW_GAP) + 8;
+
+// games rendering
+const GAME_LANES   = 9;
+const GAME_LANE_H  = 26;
+const GAMES_SECTION_H = GAME_LANES * GAME_LANE_H + 12;
+
+const RULER_H = 32;
+const TOTAL_H = CONSOLE_SECTION_H + GAMES_SECTION_H + RULER_H;
+
+function yearToX(y) { return (y - START_YEAR) * PX_PER_YEAR; }
+function xToYear(x) { return Math.round(x / PX_PER_YEAR) + START_YEAR; }
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let birthYear = 1983;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartWindowX = 0;
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function getGeneration(y) {
+  if (y <= 1927) return "The Greatest Generation";
+  if (y <= 1945) return "Silent Generation";
+  if (y <= 1964) return "Baby Boomers";
+  if (y <= 1980) return "Generation X";
+  if (y <= 1996) return "Millennials";
+  if (y <= 2012) return "Generation Z";
+  return "Generation Alpha";
+}
+
+function getGamingYears(b) {
+  return { start: b + EARLY_YEARS, end: b + WINDOW_YEARS - 1 };
+}
+
+// Pre-assign lanes to games to avoid overlap per year
+function assignLanes(games) {
+  const yearCounters = {};
+  return games.map(g => {
+    const key = g.year;
+    if (!yearCounters[key]) yearCounters[key] = 0;
+    const lane = yearCounters[key] % GAME_LANES;
+    yearCounters[key]++;
+    return { ...g, lane };
+  });
+}
+
+// ─────────────────────────────────────────────
+// RENDER: Timeline structure
+// ─────────────────────────────────────────────
+function buildTimeline() {
+  const inner = document.getElementById('timeline-inner');
+  inner.style.width  = TIMELINE_W + 'px';
+  inner.style.height = TOTAL_H + 'px';
+
+  const consoleArea = document.getElementById('console-area');
+  consoleArea.style.top    = '0px';
+  consoleArea.style.height = CONSOLE_SECTION_H + 'px';
+
+  const gamesArea = document.getElementById('games-area');
+  gamesArea.style.top    = CONSOLE_SECTION_H + 'px';
+  gamesArea.style.height = GAMES_SECTION_H + 'px';
+
+  const ruler = document.getElementById('year-ruler');
+  ruler.style.bottom = '0px';
+  ruler.style.height = RULER_H + 'px';
+
+  // Decade vertical lines
+  for (let y = START_YEAR; y <= END_YEAR; y++) {
+    if (y % 5 === 0) {
+      const line = document.createElement('div');
+      line.className = 'decade-line' + (y % 10 === 0 ? ' major' : '');
+      line.style.left = yearToX(y) + 'px';
+      inner.appendChild(line);
+    }
+  }
+
+  // Console bars
+  CONSOLES.forEach(con => {
+    const x = yearToX(con.start);
+    const w = Math.max((con.end - con.start) * PX_PER_YEAR - 2, 4);
+    const y = con.row * (CON_ROW_H + CON_ROW_GAP) + 4;
+    const bar = document.createElement('div');
+    bar.className = 'console-bar';
+    bar.style.left    = x + 'px';
+    bar.style.width   = w + 'px';
+    bar.style.top     = y + 'px';
+    bar.style.height  = CON_BAR_H + 'px';
+    bar.style.background = con.color;
+    bar.style.zIndex  = '5';
+    bar.title = `${con.name} (${con.start}–${con.end}) · ${con.company}`;
+    const label = document.createElement('div');
+    label.className = 'console-name';
+    label.textContent = con.name;
+    bar.appendChild(label);
+    consoleArea.appendChild(bar);
+  });
+
+  // Year ruler ticks
+  for (let y = START_YEAR; y <= END_YEAR; y++) {
+    const isMajor = y % 5 === 0;
+    const isLabel = y % 5 === 0;
+    if (!isMajor && y % 1 !== 0) continue;
+    const tick = document.createElement('div');
+    tick.className = 'year-tick';
+    tick.style.left = yearToX(y) + 'px';
+    tick.style.bottom = '0px';
+    if (isLabel) {
+      const label = document.createElement('div');
+      label.className = 'tick-label';
+      label.textContent = y;
+      tick.appendChild(label);
+    }
+    const line = document.createElement('div');
+    line.className = 'tick-line ' + (isMajor ? 'major' : 'minor');
+    tick.appendChild(line);
+    ruler.appendChild(tick);
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER: Games
+// ─────────────────────────────────────────────
+const gamesWithLanes = assignLanes(GAMES);
+
+function buildGames() {
+  const area = document.getElementById('games-area');
+  const tooltip = document.getElementById('tooltip');
+
+  gamesWithLanes.forEach(g => {
+    const cx = yearToX(g.year) + PX_PER_YEAR * 0.5;
+    const cy = g.lane * GAME_LANE_H + GAME_LANE_H / 2 + 6;
+    const r  = Math.round(3.5 + g.impact * 1.4);
+    const color = GENRE_COLORS[g.genre] || GENRE_COLORS.Other;
+
+    const dot = document.createElement('div');
+    dot.className = 'game-dot';
+    dot.style.left   = cx + 'px';
+    dot.style.top    = cy + 'px';
+    dot.style.width  = r * 2 + 'px';
+    dot.style.height = r * 2 + 'px';
+    dot.style.background = color;
+    dot.style.boxShadow  = `0 0 ${r + 2}px ${color}55`;
+    dot.style.zIndex = String(20 + g.impact);
+    dot.dataset.year = g.year;
+
+    // Tooltip on hover
+    dot.addEventListener('mouseenter', e => {
+      document.getElementById('tt-title').textContent = g.title;
+      document.getElementById('tt-year').textContent  = g.year;
+      document.getElementById('tt-platform').textContent = '· ' + g.platform;
+      const genreEl = document.getElementById('tt-genre');
+      genreEl.textContent = g.genre;
+      genreEl.style.background = color + '33';
+      genreEl.style.color = color;
+      genreEl.style.border = `1px solid ${color}55`;
+      document.getElementById('tt-desc').textContent = g.desc;
+      document.getElementById('tt-impact').textContent = '★'.repeat(g.impact) + '☆'.repeat(10 - g.impact) + ` (${g.impact}/10 impact)`;
+      positionTooltip(e);
+      tooltip.classList.add('visible');
+    });
+    dot.addEventListener('mousemove', positionTooltip);
+    dot.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+
+    area.appendChild(dot);
+  });
+}
+
+function positionTooltip(e) {
+  const t = document.getElementById('tooltip');
+  let x = e.clientX + 14;
+  let y = e.clientY + 14;
+  if (x + 230 > window.innerWidth)  x = e.clientX - 230;
+  if (y + 180 > window.innerHeight) y = e.clientY - 180;
+  t.style.left = x + 'px';
+  t.style.top  = y + 'px';
+}
+
+// ─────────────────────────────────────────────
+// WINDOW / OVERLAY
+// ─────────────────────────────────────────────
+function updateWindow() {
+  const clamped = Math.max(START_YEAR, Math.min(END_YEAR - WINDOW_YEARS, birthYear));
+  const wx = yearToX(clamped);
+
+  const overlayL = document.getElementById('overlay-left');
+  const overlayR = document.getElementById('overlay-right');
+  const winEl    = document.getElementById('window-el');
+  const earlyZ   = document.getElementById('early-zone');
+  const gamingZ  = document.getElementById('gaming-zone');
+  const birthM   = document.getElementById('birth-marker');
+  const gamingM  = document.getElementById('gaming-start-marker');
+  const gamingML = document.getElementById('gaming-start-label');
+
+  overlayL.style.left  = '0px';
+  overlayL.style.width = wx + 'px';
+  overlayL.style.top   = '0px';
+  overlayL.style.bottom= '0px';
+
+  winEl.style.left  = wx + 'px';
+  winEl.style.width = WINDOW_W + 'px';
+  winEl.style.top   = '0px';
+  winEl.style.bottom= '0px';
+
+  earlyZ.style.left  = '0px';
+  earlyZ.style.width = EARLY_W + 'px';
+
+  gamingZ.style.left  = EARLY_W + 'px';
+  gamingZ.style.width = GAMING_W + 'px';
+
+  birthM.style.left = '0px';
+  gamingM.style.left = EARLY_W + 'px';
+  gamingML.textContent = `Age 5 (${clamped + EARLY_YEARS})`;
+
+  overlayR.style.left  = (wx + WINDOW_W) + 'px';
+  overlayR.style.right = '0px';
+  overlayR.style.top   = '0px';
+  overlayR.style.bottom= '0px';
+
+  // Update header display
+  const gy = getGamingYears(clamped);
+  document.getElementById('birth-year-val').textContent   = clamped;
+  document.getElementById('gaming-range-val').textContent = gy.start + ' – ' + gy.end;
+  document.getElementById('generation-val').textContent   = getGeneration(clamped);
+  document.getElementById('birth-marker-label').textContent = 'Born ' + clamped;
+
+  // Dim/highlight game dots
+  const gy_start = clamped + EARLY_YEARS;
+  const gy_end   = clamped + WINDOW_YEARS - 1;
+  document.querySelectorAll('.game-dot').forEach(dot => {
+    const y = parseInt(dot.dataset.year);
+    if (y >= gy_start && y <= gy_end) {
+      dot.style.opacity = '1';
+      dot.style.transform = 'translate(-50%, -50%) scale(1.05)';
+    } else if (y >= clamped && y < gy_start) {
+      dot.style.opacity = '0.55';
+      dot.style.transform = 'translate(-50%, -50%) scale(0.95)';
+    } else {
+      dot.style.opacity = '0.2';
+      dot.style.transform = 'translate(-50%, -50%) scale(0.85)';
+    }
+  });
+
+  updateInfoPanel(clamped, gy_start, gy_end);
+  scrollToWindow(wx);
+}
+
+function scrollToWindow(wx) {
+  const outer = document.getElementById('timeline-outer');
+  const viewW = outer.clientWidth;
+  const targetScroll = wx + WINDOW_W / 2 - viewW / 2;
+  outer.scrollLeft = Math.max(0, targetScroll);
+}
+
+// ─────────────────────────────────────────────
+// INFO PANEL
+// ─────────────────────────────────────────────
+function updateInfoPanel(born, gyStart, gyEnd) {
+  const panel = document.getElementById('info-panel');
+  const era = gamesWithLanes.filter(g => g.year >= gyStart && g.year <= gyEnd);
+  const topGames = era.sort((a,b) => b.impact - a.impact).slice(0, 8);
+  const allConsoles = CONSOLES.filter(c => c.start <= gyEnd && c.end >= gyStart);
+
+  const gen = getGeneration(born);
+  const genColor = {
+    "Millennials": "#f59e0b",
+    "Generation X": "#10b981",
+    "Generation Z": "#06b6d4",
+    "Baby Boomers": "#f97316",
+    "Generation Alpha": "#ec4899",
+  }[gen] || "#a3a3a3";
+
+  panel.innerHTML = `
+    <div class="info-block">
+      <div class="info-label">Generation</div>
+      <div class="info-value" style="color:${genColor}">${gen}</div>
+    </div>
+    <div class="info-block">
+      <div class="info-label">Gaming Era</div>
+      <div class="info-value accent">${gyStart} – ${gyEnd}</div>
+    </div>
+    <div class="info-block">
+      <div class="info-label">Active Platforms</div>
+      <div class="info-value" style="font-size:0.72rem;color:var(--text-dim)">${allConsoles.slice(0,6).map(c=>c.name).join(', ')}${allConsoles.length > 6 ? ' +' + (allConsoles.length - 6) + ' more' : ''}</div>
+    </div>
+    <div class="info-block" style="flex:1;min-width:280px">
+      <div class="info-label">Top Games in Your Era</div>
+      <div class="era-games">
+        ${topGames.map((g,i) => `<div class="era-game-chip ${i<3?'top':''}" title="${g.year} · ${g.platform}">${g.title}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// DRAG
+// ─────────────────────────────────────────────
+function setupDrag() {
+  const winEl = document.getElementById('window-el');
+  const outer = document.getElementById('timeline-outer');
+
+  function onDown(e) {
+    isDragging = true;
+    winEl.classList.add('dragging');
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    dragStartX = clientX;
+    dragStartWindowX = yearToX(Math.max(START_YEAR, Math.min(END_YEAR - WINDOW_YEARS, birthYear)));
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const dx = clientX - dragStartX;
+    const newWX = dragStartWindowX + dx;
+    const newYear = Math.round(newWX / PX_PER_YEAR) + START_YEAR;
+    birthYear = Math.max(START_YEAR, Math.min(END_YEAR - WINDOW_YEARS, newYear));
+    // Don't auto-scroll when dragging
+    const gy_start = birthYear + EARLY_YEARS;
+    const gy_end   = birthYear + WINDOW_YEARS - 1;
+    const wx = yearToX(Math.max(START_YEAR, Math.min(END_YEAR - WINDOW_YEARS, birthYear)));
+
+    document.getElementById('overlay-left').style.width = wx + 'px';
+    document.getElementById('overlay-right').style.left = (wx + WINDOW_W) + 'px';
+    document.getElementById('window-el').style.left = wx + 'px';
+    document.getElementById('birth-year-val').textContent = birthYear;
+    document.getElementById('gaming-range-val').textContent = gy_start + ' – ' + gy_end;
+    document.getElementById('generation-val').textContent = getGeneration(birthYear);
+    document.getElementById('birth-marker-label').textContent = 'Born ' + birthYear;
+    document.getElementById('gaming-start-label').textContent = `Age 5 (${birthYear + EARLY_YEARS})`;
+
+    document.querySelectorAll('.game-dot').forEach(dot => {
+      const y = parseInt(dot.dataset.year);
+      if (y >= gy_start && y <= gy_end) {
+        dot.style.opacity = '1';
+        dot.style.transform = 'translate(-50%, -50%) scale(1.05)';
+      } else if (y >= birthYear && y < gy_start) {
+        dot.style.opacity = '0.55';
+        dot.style.transform = 'translate(-50%, -50%) scale(0.95)';
+      } else {
+        dot.style.opacity = '0.2';
+        dot.style.transform = 'translate(-50%, -50%) scale(0.85)';
+      }
+    });
+
+    updateInfoPanel(birthYear, gy_start, gy_end);
+  }
+
+  function onUp() {
+    if (!isDragging) return;
+    isDragging = false;
+    winEl.classList.remove('dragging');
+  }
+
+  winEl.addEventListener('mousedown', onDown);
+  winEl.addEventListener('touchstart', onDown, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+}
+
+// ─────────────────────────────────────────────
+// KEYBOARD
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    const delta = e.shiftKey ? 5 : 1;
+    birthYear += (e.key === 'ArrowRight' ? delta : -delta);
+    birthYear = Math.max(START_YEAR, Math.min(END_YEAR - WINDOW_YEARS, birthYear));
+    updateWindow();
+  }
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  buildTimeline();
+  buildGames();
+  setupDrag();
+
+  // Set overlay widths explicitly
+  const overlayL = document.getElementById('overlay-left');
+  const overlayR = document.getElementById('overlay-right');
+  const inner    = document.getElementById('timeline-inner');
+  overlayL.style.position = 'absolute';
+  overlayL.style.zIndex   = '10';
+  overlayL.style.pointerEvents = 'none';
+  overlayR.style.position = 'absolute';
+  overlayR.style.zIndex   = '10';
+  overlayR.style.pointerEvents = 'none';
+
+  updateWindow();
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
