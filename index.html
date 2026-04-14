@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Video Game Timeline — Generational Impact</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -248,7 +248,9 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
 }
 #m-header {
   flex-shrink: 0; background: var(--bg2);
-  border-bottom: 1px solid rgba(124,58,237,0.2); padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(124,58,237,0.2);
+  padding: 12px 16px 10px;
+  padding-top: max(12px, env(safe-area-inset-top));
 }
 #m-header h1 {
   font-size: 1rem; font-weight: 700; margin-bottom: 10px;
