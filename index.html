@@ -243,14 +243,14 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
 
 /* ─── Mobile App ─── */
 #mobile-app {
-  display: none; flex-direction: column; height: 100vh; overflow: hidden;
+  display: none; flex-direction: column; height: 100dvh; overflow: hidden;
   background: var(--bg); color: var(--text); font-family: var(--font);
 }
 #m-header {
   flex-shrink: 0; background: var(--bg2);
   border-bottom: 1px solid rgba(124,58,237,0.2);
   padding: 12px 16px 10px;
-  padding-top: max(12px, env(safe-area-inset-top));
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
 }
 #m-header h1 {
   font-size: 1rem; font-weight: 700; margin-bottom: 10px;
