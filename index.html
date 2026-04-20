@@ -43,13 +43,21 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .birth-year-box {
   text-align: center; background: var(--bg3);
   border: 1px solid var(--accent); border-radius: 8px; padding: 8px 18px;
+  cursor: pointer; transition: border-color 0.15s;
 }
+.birth-year-box.w2 { border-color: #0d9488; }
+.birth-year-box.active-win { border-width: 2px; }
 .birth-year-box .lbl { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
-#birth-year-val { font-size: 2rem; font-weight: 800; color: #a78bfa; line-height: 1; font-family: var(--mono); }
+.birth-year-val { font-size: 2rem; font-weight: 800; line-height: 1; font-family: var(--mono); }
+.birth-year-val.w1 { color: #a78bfa; }
+.birth-year-val.w2 { color: #5eead4; }
 .range-box { text-align: center; }
 .range-box .lbl { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
-#gaming-range-val { font-size: 0.95rem; font-weight: 600; color: var(--green); }
-#generation-val { font-size: 0.68rem; color: var(--gold); margin-top: 2px; }
+.gaming-range-val { font-size: 0.95rem; font-weight: 600; }
+.gaming-range-val.w1 { color: var(--green); }
+.gaming-range-val.w2 { color: #5eead4; }
+.generation-val { font-size: 0.68rem; color: var(--gold); margin-top: 2px; }
+.win-sep { width: 1px; height: 48px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
 .hint { font-size: 0.65rem; color: var(--text-dim); max-width: 130px; text-align: right; line-height: 1.5; }
 kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; padding: 1px 5px; font-size: 0.6rem; color: var(--text-dim); }
 
@@ -149,66 +157,80 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
   background: var(--overlay-dark); pointer-events: none; z-index: 10;
 }
 #overlay-right { right: 0; }
-#window-el {
+.window-el {
   position: absolute; top: 0; bottom: 0; z-index: 11;
   cursor: grab; user-select: none;
 }
-#window-el:active, #window-el.dragging { cursor: grabbing; }
-#early-zone {
-  position: absolute; top: 0; bottom: 0; left: 0;
-  background: var(--overlay-early);
-  border-left: 2px solid rgba(124,58,237,0.45); pointer-events: none;
+/* Overlap highlight — denser color where both windows intersect */
+#window-overlap {
+  position: absolute; top: 0; bottom: 0;
+  background: rgba(80,60,160,0.22);
+  pointer-events: none; z-index: 12; display: none;
 }
-#gaming-zone {
+.band-label {
+  position: absolute; bottom: 10px; left: 10px;
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; pointer-events: none; opacity: 0.6;
+}
+.band-label.w1 { color: #a78bfa; }
+.band-label.w2 { color: #5eead4; }
+.window-el:active, .window-el.dragging { cursor: grabbing; }
+.window-el.active .window-border { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.15), inset 0 0 24px rgba(255,255,255,0.03); }
+.early-zone {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  pointer-events: none;
+}
+.gaming-zone {
   position: absolute; top: 0; bottom: 0;
   pointer-events: none;
-  border-right: 2px solid rgba(6,214,160,0.45);
 }
-#window-border {
+.window-border {
   position: absolute; inset: 0; pointer-events: none;
   box-shadow: inset 0 0 0 1px rgba(124,58,237,0.18), inset 0 0 24px rgba(124,58,237,0.04);
+  transition: box-shadow 0.15s;
 }
-#birth-marker {
+.birth-marker {
   position: absolute; top: 0; bottom: 0; left: 0; width: 2px;
-  background: rgba(167,139,250,0.65); pointer-events: none;
-  box-shadow: 0 0 8px rgba(124,58,237,0.5);
+  pointer-events: none;
 }
-#birth-marker-label {
+.birth-marker-label {
   position: absolute; top: 4px; left: 4px;
-  font-size: 0.58rem; color: rgba(167,139,250,0.75);
-  font-weight: 700; font-family: var(--mono); white-space: nowrap;
+  font-size: 0.58rem; font-weight: 700; font-family: var(--mono); white-space: nowrap;
 }
-#gaming-start-marker {
+.gaming-start-marker {
   position: absolute; top: 0; bottom: 0; width: 1.5px;
-  background: rgba(6,214,160,0.55); pointer-events: none;
-  box-shadow: 0 0 6px rgba(6,214,160,0.35);
+  pointer-events: none;
 }
-#gaming-start-label {
+.gaming-start-label {
   position: absolute; top: 4px; right: 5px;
-  font-size: 0.58rem; color: rgba(6,214,160,0.7);
-  font-weight: 700; font-family: var(--mono); white-space: nowrap; text-align: right;
+  font-size: 0.58rem; font-weight: 700; font-family: var(--mono); white-space: nowrap; text-align: right;
 }
 .zone-label {
   position: absolute; bottom: 36px;
   font-size: 0.55rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.07em; pointer-events: none; white-space: nowrap;
 }
-#early-zone .zone-label { left: 5px; color: rgba(167,139,250,0.45); }
-#gaming-zone .zone-label { right: 5px; color: rgba(6,214,160,0.45); }
-#drag-handle {
+.early-zone .zone-label { left: 5px; color: rgba(167,139,250,0.45); }
+.gaming-zone .zone-label { right: 5px; color: rgba(6,214,160,0.45); }
+.drag-handle {
   position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
-  background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4);
   border-radius: 10px; padding: 3px 10px;
-  font-size: 0.58rem; color: rgba(167,139,250,0.6); white-space: nowrap; cursor: grab;
+  font-size: 0.58rem; white-space: nowrap; cursor: grab;
 }
 
 /* ─── Info panel ─── */
 #info-panel {
   flex-shrink: 0; background: var(--bg2);
   border-top: 1px solid rgba(255,255,255,0.05);
-  padding: 8px 24px; min-height: 56px;
-  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  min-height: 56px; display: flex; flex-direction: row;
 }
+.info-col {
+  flex: 1; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 8px 20px; min-width: 0; overflow: hidden;
+}
+.info-col.w1 { border-top: 2px solid rgba(124,58,237,0.5); }
+.info-col.w2 { border-top: 2px solid rgba(13,148,136,0.5); }
+.info-col-sep { width: 1px; background: rgba(255,255,255,0.07); flex-shrink: 0; align-self: stretch; }
 .info-block { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
 .info-label { font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
 .info-value { font-size: 0.78rem; color: var(--text); font-weight: 500; }
@@ -257,30 +279,43 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
   background: linear-gradient(90deg, #a78bfa, #06d6a0);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-#m-birth-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-#m-birth-control { display: flex; align-items: center; gap: 10px; }
+#m-birth-row { display: flex; align-items: stretch; gap: 0; }
+.m-birth-control { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
+.m-birth-vsep { width: 1px; background: rgba(255,255,255,0.08); flex-shrink: 0; align-self: stretch; margin: 4px 0; }
 .m-year-btn {
   background: var(--bg3); border: 1px solid rgba(124,58,237,0.4); color: #a78bfa;
-  border-radius: 6px; width: 36px; height: 36px; font-size: 1.3rem; cursor: pointer;
+  border-radius: 6px; width: 32px; height: 32px; font-size: 1.2rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center; user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent; flex-shrink: 0;
 }
-.m-year-btn:active { background: rgba(124,58,237,0.25); }
-#m-birth-center { text-align: center; }
+.m-year-btn.w2 { border-color: rgba(13,148,136,0.5); color: #5eead4; }
+.m-year-btn.w1:active { background: rgba(124,58,237,0.25); }
+.m-year-btn.w2:active { background: rgba(13,148,136,0.25); }
+.m-birth-center { text-align: center; }
 .m-ctrl-label { font-size: 0.55rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
-#m-birth-year-val {
-  font-size: 2rem; font-weight: 800; color: #a78bfa; font-family: var(--mono);
-  min-width: 68px; text-align: center; line-height: 1;
+.m-birth-year-val {
+  font-size: 1.6rem; font-weight: 800; font-family: var(--mono);
+  min-width: 58px; text-align: center; line-height: 1;
 }
-#m-era-block { text-align: right; }
-#m-gaming-range { font-size: 0.85rem; font-weight: 600; color: var(--green); display: block; }
-#m-generation { font-size: 0.68rem; color: var(--gold); }
+.m-birth-year-val.w1 { color: #a78bfa; }
+.m-birth-year-val.w2 { color: #5eead4; }
+.m-era-line { font-size: 0.7rem; font-weight: 600; }
+.m-era-line.w1 { color: var(--green); }
+.m-era-line.w2 { color: #5eead4; }
+.m-era-line.gen { font-size: 0.6rem; color: var(--gold); }
 .m-inline-zone-label {
   margin-left: auto; flex-shrink: 0; align-self: center;
   font-size: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
   color: rgba(167,139,250,0.55); padding-right: 4px;
 }
 .m-inline-zone-label.gaming { color: rgba(6,214,160,0.55); }
+.m-year-row.birth-year-row-2 { border-left-color: #5eead4; background: rgba(13,148,136,0.08); }
+.m-year-row.early-zone-2 { border-left-color: rgba(13,148,136,0.35); background: rgba(5,78,55,0.15); }
+.m-year-row.gaming-zone-2 { border-left-color: rgba(94,234,212,0.5); background: rgba(13,148,136,0.05); }
+.m-inline-zone-label.teal { color: rgba(94,234,212,0.55); }
+.m-inline-zone-label.gaming-2 { color: rgba(94,234,212,0.55); }
+.m-game-chip.in-window-2 { color: rgba(94,234,212,0.88); border-color: rgba(13,148,136,0.35); }
+.m-game-chip.in-both { color: #fff; border-color: rgba(124,58,237,0.3); box-shadow: 0 0 0 1px rgba(13,148,136,0.25); }
 
 #m-impact-filter {
   display: flex; align-items: center; gap: 6px; padding: 7px 16px;
@@ -297,27 +332,63 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
 #m-timeline {
   flex: 1; overflow-y: auto; overscroll-behavior: contain;
   scrollbar-width: thin; scrollbar-color: #252538 transparent;
+  position: relative;
+}
+/* Window overlays — absolute positioned inside the scrollable area */
+.m-win-overlay {
+  position: absolute; pointer-events: none; z-index: 0;
+  border-left: 1.5px solid transparent; border-right: 1.5px solid transparent;
+}
+/* P1 early zone (childhood) */
+#m-early-overlay-0 {
+  background: rgba(60,15,120,0.22);
+  border-top: 1.5px solid rgba(124,58,237,0.55);
+  border-left-color: rgba(124,58,237,0.55); border-right-color: rgba(124,58,237,0.55);
+  border-radius: 3px 3px 0 0;
+}
+/* P1 gaming zone */
+#m-gaming-overlay-0 {
+  background: rgba(0,45,35,0.22);
+  border-bottom: 1.5px solid rgba(6,214,160,0.55);
+  border-left-color: rgba(6,214,160,0.45); border-right-color: rgba(6,214,160,0.45);
+  border-radius: 0 0 3px 3px;
+}
+/* P2 early zone (childhood) */
+#m-early-overlay-1 {
+  background: rgba(5,50,45,0.2);
+  border-top: 1.5px solid rgba(13,148,136,0.55);
+  border-left-color: rgba(13,148,136,0.55); border-right-color: rgba(13,148,136,0.55);
+  border-radius: 3px 3px 0 0;
+}
+/* P2 gaming zone */
+#m-gaming-overlay-1 {
+  background: rgba(5,78,55,0.28);
+  border-bottom: 1.5px solid rgba(94,234,212,0.55);
+  border-left-color: rgba(94,234,212,0.45); border-right-color: rgba(94,234,212,0.45);
+  border-radius: 0 0 3px 3px;
 }
 .m-year-row {
-  display: flex; align-items: flex-start; padding: 3px 16px 3px 12px;
-  border-left: 3px solid transparent; min-height: 26px;
+  display: flex; align-items: stretch; padding: 3px 4px 3px 12px;
+  min-height: 26px;
 }
-.m-year-row.birth-year-row { border-left-color: #a78bfa; background: rgba(124,58,237,0.08); }
-.m-year-row.early-zone { border-left-color: rgba(124,58,237,0.35); background: rgba(50,15,100,0.18); }
-.m-year-row.gaming-zone { border-left-color: rgba(6,214,160,0.5); background: rgba(6,214,160,0.05); }
 .m-row-left {
   width: 72px; flex-shrink: 0; display: flex; align-items: flex-start;
   gap: 4px; overflow: hidden;
 }
+/* Side-by-side game columns */
+.m-col-w0, .m-col-w1 {
+  flex: 1; display: flex; flex-wrap: wrap; gap: 3px;
+  padding: 2px 3px 3px 3px; min-width: 0; position: relative; z-index: 1;
+}
+.m-col-sep {
+  width: 1px; flex-shrink: 0; background: rgba(255,255,255,0.06); align-self: stretch; margin: 2px 0; position: relative; z-index: 1;
+}
+.m-row-left { position: relative; z-index: 1; }
 .m-year-label {
   font-size: 0.62rem; color: var(--text-dim); font-family: var(--mono);
   flex-shrink: 0; padding-top: 5px; line-height: 1;
 }
-.m-year-row.gaming-zone .m-year-label,
-.m-year-row.birth-year-row .m-year-label { color: rgba(255,255,255,0.75); }
-.m-games-col {
-  flex: 1; display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 0 3px 6px;
-}
+.m-games-col { display: none; }
 .m-game-chip {
   display: flex; align-items: center; gap: 5px;
   background: var(--bg3); border: 1px solid rgba(255,255,255,0.08);
@@ -325,7 +396,8 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
   font-size: 0.67rem; color: rgba(255,255,255,0.55);
   transition: border-color 0.12s, color 0.12s; -webkit-tap-highlight-color: transparent;
 }
-.m-game-chip.in-window { color: rgba(255,255,255,0.88); border-color: rgba(124,58,237,0.3); }
+.m-game-chip.in-window  { color: rgba(255,255,255,0.9); border-color: rgba(124,58,237,0.45); }
+.m-game-chip.in-window-2 { color: rgba(255,255,255,0.9); border-color: rgba(13,148,136,0.45); }
 .m-game-chip:active { background: rgba(124,58,237,0.18); }
 .m-con-strip {
   display: flex; flex-direction: row; align-items: flex-start;
@@ -393,14 +465,22 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
       <p>Drag the window to set your birth year — explore what shaped each generation's gaming identity</p>
     </div>
     <div class="birth-panel">
-      <div class="birth-year-box">
-        <div class="lbl">Born</div>
-        <div id="birth-year-val">1983</div>
+      <div class="birth-year-box active-win" id="win-box-0" data-w="0">
+        <div class="lbl">Person 1 · Born</div>
+        <div class="birth-year-val w1" id="birth-year-val-0">1983</div>
       </div>
       <div class="range-box">
-        <div class="lbl">Core gaming years</div>
-        <div id="gaming-range-val">1988 – 1992</div>
-        <div id="generation-val">Millennials</div>
+        <div class="gaming-range-val w1" id="gaming-range-val-0">1988 – 2000</div>
+        <div class="generation-val" id="generation-val-0">Millennials</div>
+      </div>
+      <div class="win-sep"></div>
+      <div class="birth-year-box w2" id="win-box-1" data-w="1">
+        <div class="lbl">Person 2 · Born</div>
+        <div class="birth-year-val w2" id="birth-year-val-1">1999</div>
+      </div>
+      <div class="range-box">
+        <div class="gaming-range-val w2" id="gaming-range-val-1">2004 – 2016</div>
+        <div class="generation-val" id="generation-val-1">Generation Z</div>
       </div>
       <div class="hint">Drag window<br>or <kbd>←</kbd> <kbd>→</kbd> keys</div>
     </div>
@@ -416,23 +496,40 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
       <div id="games-area"></div>
       <div id="year-ruler"></div>
       <div id="overlay-left"></div>
-      <div id="window-el">
-        <div id="early-zone">
+      <div id="overlay-right"></div>
+      <div id="window-overlap"></div>
+      <div class="window-el active" id="window-el-0">
+        <div class="early-zone">
           <div class="zone-label">Childhood (0–4)</div>
         </div>
-        <div id="gaming-zone">
+        <div class="gaming-zone">
           <div class="zone-label">Gaming years (5–17)</div>
         </div>
-        <div id="window-border"></div>
-        <div id="birth-marker">
-          <div id="birth-marker-label">Born</div>
+        <div class="window-border"></div>
+        <div class="birth-marker">
+          <div class="birth-marker-label">Born</div>
         </div>
-        <div id="gaming-start-marker">
-          <div id="gaming-start-label">Age 5</div>
-        </div>
-        <div id="drag-handle">⟺ drag</div>
+        <div class="gaming-start-marker"></div>
+        <div class="gaming-start-label">Age 5</div>
+        <div class="drag-handle">⟺ drag</div>
+        <div class="band-label w1">P1</div>
       </div>
-      <div id="overlay-right"></div>
+      <div class="window-el" id="window-el-1">
+        <div class="early-zone">
+          <div class="zone-label">Childhood (0–4)</div>
+        </div>
+        <div class="gaming-zone">
+          <div class="zone-label">Gaming years (5–17)</div>
+        </div>
+        <div class="window-border"></div>
+        <div class="birth-marker">
+          <div class="birth-marker-label">Born</div>
+        </div>
+        <div class="gaming-start-marker"></div>
+        <div class="gaming-start-label">Age 5</div>
+        <div class="drag-handle">⟺ drag</div>
+        <div class="band-label w2">P2</div>
+      </div>
     </div>
   </div>
 
@@ -457,24 +554,37 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
       </div>
     </div>
   </div>
-  <div id="info-panel"></div>
+  <div id="info-panel">
+    <div class="info-col w1" id="info-col-0"></div>
+    <div class="info-col-sep"></div>
+    <div class="info-col w2" id="info-col-1"></div>
+  </div>
 </div>
 
 <div id="mobile-app">
   <div id="m-header">
     <h1>Video Game Timeline</h1>
     <div id="m-birth-row">
-      <div id="m-birth-control">
-        <button class="m-year-btn" id="m-prev-year">‹</button>
-        <div id="m-birth-center">
-          <div class="m-ctrl-label">Birth year</div>
-          <div id="m-birth-year-val">1985</div>
+      <div class="m-birth-control" id="m-birth-control-0">
+        <button class="m-year-btn w1" data-w="0" data-dir="-1">‹</button>
+        <div class="m-birth-center">
+          <div class="m-ctrl-label">Person 1</div>
+          <div class="m-birth-year-val w1" id="m-birth-year-val-0">1983</div>
+          <div class="m-era-line w1" id="m-gaming-range-0">1988 – 2000</div>
+          <div class="m-era-line gen" id="m-generation-0">Millennials</div>
         </div>
-        <button class="m-year-btn" id="m-next-year">›</button>
+        <button class="m-year-btn w1" data-w="0" data-dir="1">›</button>
       </div>
-      <div id="m-era-block">
-        <span id="m-gaming-range">1990 – 2002</span>
-        <span id="m-generation">Millennials</span>
+      <div class="m-birth-vsep"></div>
+      <div class="m-birth-control" id="m-birth-control-1">
+        <button class="m-year-btn w2" data-w="1" data-dir="-1">‹</button>
+        <div class="m-birth-center">
+          <div class="m-ctrl-label">Person 2</div>
+          <div class="m-birth-year-val w2" id="m-birth-year-val-1">1999</div>
+          <div class="m-era-line w2" id="m-gaming-range-1">2004 – 2016</div>
+          <div class="m-era-line gen" id="m-generation-1">Generation Z</div>
+        </div>
+        <button class="m-year-btn w2" data-w="1" data-dir="1">›</button>
       </div>
     </div>
   </div>
@@ -485,7 +595,12 @@ kbd { background: var(--bg3); border: 1px solid #2a2a44; border-radius: 3px; pad
     <button class="m-impact-btn" data-min="8">High</button>
     <button class="m-impact-btn active" data-min="10">Landmark</button>
   </div>
-  <div id="m-timeline"></div>
+  <div id="m-timeline">
+    <div class="m-win-overlay" id="m-early-overlay-0"></div>
+    <div class="m-win-overlay" id="m-gaming-overlay-0"></div>
+    <div class="m-win-overlay" id="m-early-overlay-1"></div>
+    <div class="m-win-overlay" id="m-gaming-overlay-1"></div>
+  </div>
   <div id="m-detail-backdrop"></div>
   <div id="m-game-detail">
     <button id="m-detail-close">✕</button>
@@ -675,6 +790,7 @@ const GAMES = [
   { title:"Wii Sports",                        icon:"🎾", year:2006, platform:"Wii",              impact:9,  desc:"Bundled with Wii; the game that brought gaming to grandmothers. Changed who 'gamers' could be." },
   { title:"Zelda: Twilight Princess",          icon:"🗡️", year:2006, platform:"Wii",              impact:8,  desc:"Twilight Princess went dark and mature — fan wish fulfillment delivered on two platforms simultaneously." },
   { title:"Okami",                             icon:"🐺", year:2006, platform:"PlayStation 2",    impact:8,  desc:"Watercolor art style, Zelda-like gameplay, Japanese mythology — a masterpiece lost to low sales." },
+  { title:"Roblox",                            icon:"🧱", year:2017, platform:"PC",               impact:10, desc:"More platform than game — by 2017 it was the defining gaming space for kids born 2005–2015, surpassing Minecraft as their primary gaming identity. Millions learned to play and create here before picking up any other game." },
   { title:"BioShock",                          icon:"💉", year:2007, platform:"Xbox 360",         impact:10, desc:"Rapture. Objectivism. 'Would you kindly.' FPS as philosophical essay — narrative game design at its peak." },
   { title:"Call of Duty 4: Modern Warfare",    icon:"🎖️", year:2007, platform:"Xbox 360",         impact:10, desc:"Transformed CoD into a console titan; killstreak rewards, leveling — the multiplayer loop that ate a decade." },
   { title:"Portal",                            icon:"🔮", year:2007, platform:"PC",               impact:10, desc:"GlaDOS. Cake. Spatial reasoning puzzles. Possibly the greatest short game ever made. 'Still Alive.'" },
@@ -733,6 +849,7 @@ const GAMES = [
   { title:"Monster Hunter: World",             icon:"🐉", year:2018, platform:"PlayStation 4",    impact:8,  desc:"Made Monster Hunter accessible globally; satisfying loop of hunt, craft, repeat at console scale." },
   { title:"Celeste",                           icon:"⛰️", year:2018, platform:"PC",               impact:8,  desc:"Precision platformer about anxiety and self-doubt — the mechanics are the metaphor. Extraordinary indie." },
   { title:"Fortnite",                          icon:"🏗️", year:2018, platform:"PC",               impact:10, desc:"Free-to-play cultural phenomenon; Gen Z's Minecraft — shared event space, crossovers, world-building." },
+  { title:"Among Us",                          icon:"🔪", year:2020, platform:"PC",               impact:8,  desc:"Launched in 2018 to no attention; became a pandemic phenomenon in 2020 — social deduction that united isolated households globally. 'Sus' entered everyday vocabulary; peak communal gaming during lockdown." },
   { title:"Sekiro: Shadows Die Twice",         icon:"⚔️", year:2019, platform:"PlayStation 4",    impact:9,  desc:"FromSoftware's most demanding game — parry-based samurai combat with no builds, just pure skill." },
   { title:"Death Stranding",                   icon:"🌊", year:2019, platform:"PlayStation 4",    impact:8,  desc:"Kojima's love letter to connection — hiking and delivery in a fractured America; divisive and profound." },
   { title:"Control",                           icon:"🔺", year:2019, platform:"PlayStation 4",    impact:8,  desc:"Remedy's supernatural brutalist-art masterpiece; the Federal Bureau of Control's mysteries run deep." },
@@ -745,6 +862,7 @@ const GAMES = [
   { title:"Elden Ring",                        icon:"💀", year:2022, platform:"PlayStation 5",    impact:10, desc:"FromSoftware + George R.R. Martin. Open-world Souls. GOTY by consensus — masterwork of a generation." },
   { title:"God of War: Ragnarök",              icon:"⚡", year:2022, platform:"PlayStation 5",    impact:9,  desc:"Kratos and Atreus vs. the Norse apocalypse; matched the 2018 game's emotional heights. Freya's arc." },
   { title:"Stray",                             icon:"🐱", year:2022, platform:"PlayStation 5",    impact:7,  desc:"You're a cat. That's it. BlueTwelve's cyberpunk cat game captured the world's heart." },
+  { title:"Vampire Survivors",                 icon:"🧛", year:2022, platform:"PC",               impact:8,  desc:"A solo dev's €2.99 roguelite sparked the entire bullet-heaven genre. Crystallized the post-pandemic indie wave: any scale, any budget, if the loop is right it wins." },
   { title:"Zelda: Tears of the Kingdom",       icon:"🌿", year:2023, platform:"Nintendo Switch",  impact:10, desc:"Built on BotW but became its own thing — Ultrahand building, sky islands, time mechanics. Another masterwork." },
   { title:"Baldur's Gate 3",                   icon:"📜", year:2023, platform:"PC",               impact:10, desc:"Larian's D&D RPG set a new bar for CRPG depth; the most complete RPG ever made. GOTY 2023 unanimously." },
   { title:"Alan Wake 2",                       icon:"🔦", year:2023, platform:"PlayStation 5",    impact:8,  desc:"Remedy's multiverse thriller — live-action sequences, dark place, Alan and Saga. Auteur gaming at peak." },
@@ -797,12 +915,51 @@ function xToYear(x)  { return Math.round(x / PX_PER_YEAR) + START_YEAR; }
 function rowToY(r)   { return r * (CON_ROW_H + CON_ROW_GAP) + 4; }
 
 // ─────────────────────────────────────────────────────
+// WINDOW CONFIG
+// ─────────────────────────────────────────────────────
+const WIN_CFG = [
+  {
+    earlyBg:       'rgba(50,15,100,0.38)',
+    earlyBorder:   'rgba(124,58,237,0.45)',
+    gamingBorder:  'rgba(6,214,160,0.45)',
+    markerBg:      'rgba(167,139,250,0.65)',
+    markerShadow:  '0 0 8px rgba(124,58,237,0.5)',
+    gStartBg:      'rgba(6,214,160,0.55)',
+    gStartShadow:  '0 0 6px rgba(6,214,160,0.35)',
+    gStartColor:   'rgba(6,214,160,0.7)',
+    markerColor:   'rgba(167,139,250,0.75)',
+    dotGlow:       '0 0 8px rgba(124,58,237,0.5)',
+    dotBorder:     'rgba(124,58,237,0.4)',
+    dragBg:        'rgba(124,58,237,0.2)',
+    dragBorder:    'rgba(124,58,237,0.4)',
+    dragColor:     'rgba(167,139,250,0.6)',
+  },
+  {
+    earlyBg:       'rgba(5,78,55,0.32)',
+    earlyBorder:   'rgba(13,148,136,0.5)',
+    gamingBorder:  'rgba(94,234,212,0.5)',
+    markerBg:      'rgba(94,234,212,0.65)',
+    markerShadow:  '0 0 8px rgba(13,148,136,0.5)',
+    gStartBg:      'rgba(94,234,212,0.55)',
+    gStartShadow:  '0 0 6px rgba(13,148,136,0.35)',
+    gStartColor:   'rgba(94,234,212,0.7)',
+    markerColor:   'rgba(94,234,212,0.75)',
+    dotGlow:       '0 0 8px rgba(13,148,136,0.5)',
+    dotBorder:     'rgba(13,148,136,0.4)',
+    dragBg:        'rgba(13,148,136,0.2)',
+    dragBorder:    'rgba(13,148,136,0.4)',
+    dragColor:     'rgba(94,234,212,0.6)',
+  },
+];
+
+// ─────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────
-let birthYear  = 1983;
-let minImpact  = 10;
-let isDragging = false;
-let dragStartX = 0;
+let birthYears    = [1983, 1999];
+let activeWindow  = 0;
+let draggingWin   = -1;
+let minImpact     = 10;
+let dragStartX    = 0;
 let dragStartWinX = 0;
 
 // ─────────────────────────────────────────────────────
@@ -931,8 +1088,8 @@ function buildTimeline() {
 // BUILD GAMES
 // ─────────────────────────────────────────────────────
 function buildGames() {
-  const area   = document.getElementById('games-area');
-  const tt     = document.getElementById('tooltip');
+  const area = document.getElementById('games-area');
+  const tt   = document.getElementById('tooltip');
 
   gamesWithLanes.forEach(g => {
     const cx = yearToX(g.year) + PX_PER_YEAR * 0.5;
@@ -986,58 +1143,126 @@ function clampBirth(y) {
   return Math.max(START_YEAR, Math.min(END_YEAR - WINDOW_YEARS, y));
 }
 
-function updateWindow(skipScroll) {
-  const b  = clampBirth(birthYear);
-  const wx = yearToX(b);
-  const gs = b + EARLY_YEARS;
-  const ge = b + WINDOW_YEARS - 1;
+function updateWindows(skipScroll) {
+  const wins = birthYears.map(by => {
+    const b = clampBirth(by);
+    return { b, wx: yearToX(b), gs: b + EARLY_YEARS, ge: b + WINDOW_YEARS - 1 };
+  });
 
-  document.getElementById('overlay-left').style.width  = wx + 'px';
-  document.getElementById('overlay-right').style.left  = (wx + WINDOW_W) + 'px';
-  document.getElementById('window-el').style.left      = wx + 'px';
-  document.getElementById('window-el').style.width     = WINDOW_W + 'px';
-  document.getElementById('early-zone').style.width    = EARLY_W + 'px';
-  document.getElementById('gaming-zone').style.left    = EARLY_W + 'px';
-  document.getElementById('gaming-zone').style.width   = GAMING_W + 'px';
-  document.getElementById('gaming-start-marker').style.left = EARLY_W + 'px';
-  document.getElementById('gaming-start-label').textContent = `Age 5 (${gs})`;
-  document.getElementById('birth-marker-label').textContent = `Born ${b}`;
+  // Overlays — dim outside union of both windows
+  const leftX  = Math.min(wins[0].wx, wins[1].wx);
+  const rightX = Math.max(wins[0].wx + WINDOW_W, wins[1].wx + WINDOW_W);
+  document.getElementById('overlay-left').style.width = leftX + 'px';
+  document.getElementById('overlay-right').style.left = rightX + 'px';
 
-  document.getElementById('birth-year-val').textContent   = b;
-  document.getElementById('gaming-range-val').textContent = gs + ' – ' + ge;
-  const gen = getGeneration(b);
-  document.getElementById('generation-val').textContent   = gen;
+  // Overlap highlight — denser color where both windows intersect
+  const overlapL = Math.max(wins[0].wx, wins[1].wx);
+  const overlapR = Math.min(wins[0].wx + WINDOW_W, wins[1].wx + WINDOW_W);
+  const overlapEl = document.getElementById('window-overlap');
+  if (overlapR > overlapL) {
+    overlapEl.style.display = 'block';
+    overlapEl.style.left    = overlapL + 'px';
+    overlapEl.style.width   = (overlapR - overlapL) + 'px';
+  } else {
+    overlapEl.style.display = 'none';
+  }
 
-  // Dot opacity / scale
+  // Per-window elements
+  wins.forEach(({ b, wx, gs, ge }, i) => {
+    const cfg   = WIN_CFG[i];
+    const winEl = document.getElementById(`window-el-${i}`);
+    winEl.style.left  = wx + 'px';
+    winEl.style.width = WINDOW_W + 'px';
+    winEl.classList.toggle('active', i === activeWindow);
+
+    const earlyZone = winEl.querySelector('.early-zone');
+    earlyZone.style.width       = EARLY_W + 'px';
+    earlyZone.style.background  = cfg.earlyBg;
+    earlyZone.style.borderLeft  = `2px solid ${cfg.earlyBorder}`;
+
+    const gamingZone = winEl.querySelector('.gaming-zone');
+    gamingZone.style.left        = EARLY_W + 'px';
+    gamingZone.style.width       = GAMING_W + 'px';
+    gamingZone.style.borderRight = `2px solid ${cfg.gamingBorder}`;
+
+    const bMarker = winEl.querySelector('.birth-marker');
+    bMarker.style.background = cfg.markerBg;
+    bMarker.style.boxShadow  = cfg.markerShadow;
+    winEl.querySelector('.birth-marker-label').textContent = `Born ${b}`;
+    winEl.querySelector('.birth-marker-label').style.color = cfg.markerColor;
+
+    const gsMarker = winEl.querySelector('.gaming-start-marker');
+    gsMarker.style.left       = EARLY_W + 'px';
+    gsMarker.style.background = cfg.gStartBg;
+    gsMarker.style.boxShadow  = cfg.gStartShadow;
+
+    const gsLabel = winEl.querySelector('.gaming-start-label');
+    gsLabel.style.left  = (EARLY_W + 4) + 'px';
+    gsLabel.style.color = cfg.gStartColor;
+    gsLabel.textContent = `Age 5 (${gs})`;
+
+    const dh = winEl.querySelector('.drag-handle');
+    dh.style.background  = cfg.dragBg;
+    dh.style.border      = `1px solid ${cfg.dragBorder}`;
+    dh.style.color       = cfg.dragColor;
+
+    // Header
+    document.getElementById(`birth-year-val-${i}`).textContent   = b;
+    document.getElementById(`gaming-range-val-${i}`).textContent = `${gs} – ${ge}`;
+    const gen = getGeneration(b);
+    const genEl = document.getElementById(`generation-val-${i}`);
+    genEl.textContent  = gen;
+    genEl.style.color  = getGenColor(gen);
+
+    // Header active indicator
+    document.getElementById(`win-box-${i}`).classList.toggle('active-win', i === activeWindow);
+  });
+
+  // Game dots — highlight by which window(s) they fall in
   document.querySelectorAll('.game-dot').forEach(dot => {
-    const y  = parseInt(dot.dataset.year);
+    const y   = parseInt(dot.dataset.year);
     const imp = parseInt(dot.dataset.impact);
     if (imp < minImpact) {
-      dot.style.opacity   = '0';
-      dot.style.pointerEvents = 'none';
-      return;
+      dot.style.opacity = '0'; dot.style.pointerEvents = 'none'; return;
     }
     dot.style.pointerEvents = '';
-    if (y >= gs && y <= ge) {
-      dot.style.opacity   = '1';
-      dot.style.transform = 'translate(-50%, -50%) scale(1.05)';
-      dot.style.boxShadow = '0 0 8px rgba(124,58,237,0.35)';
-      dot.style.borderColor = 'rgba(124,58,237,0.4)';
-    } else if (y >= b && y < gs) {
-      dot.style.opacity   = '0.5';
-      dot.style.transform = 'translate(-50%, -50%) scale(0.92)';
-      dot.style.boxShadow = 'none';
+    const inG = wins.map(w => y >= w.gs && y <= w.ge);
+    const inE = wins.map(w => y >= w.b  && y <  w.gs);
+
+    if (inG[0] && inG[1]) {
+      dot.style.opacity     = '1';
+      dot.style.transform   = 'translate(-50%, -50%) scale(1.08)';
+      dot.style.boxShadow   = `${WIN_CFG[0].dotGlow}, ${WIN_CFG[1].dotGlow}`;
+      dot.style.borderColor = WIN_CFG[0].dotBorder;
+    } else if (inG[0]) {
+      dot.style.opacity     = '1';
+      dot.style.transform   = 'translate(-50%, -50%) scale(1.05)';
+      dot.style.boxShadow   = WIN_CFG[0].dotGlow;
+      dot.style.borderColor = WIN_CFG[0].dotBorder;
+    } else if (inG[1]) {
+      dot.style.opacity     = '1';
+      dot.style.transform   = 'translate(-50%, -50%) scale(1.05)';
+      dot.style.boxShadow   = WIN_CFG[1].dotGlow;
+      dot.style.borderColor = WIN_CFG[1].dotBorder;
+    } else if (inE[0] || inE[1]) {
+      dot.style.opacity     = '0.45';
+      dot.style.transform   = 'translate(-50%, -50%) scale(0.92)';
+      dot.style.boxShadow   = 'none';
       dot.style.borderColor = 'rgba(255,255,255,0.08)';
     } else {
-      dot.style.opacity   = '0.18';
-      dot.style.transform = 'translate(-50%, -50%) scale(0.8)';
-      dot.style.boxShadow = 'none';
-      dot.style.borderColor = 'rgba(255,255,255,0.06)';
+      dot.style.opacity     = '0.15';
+      dot.style.transform   = 'translate(-50%, -50%) scale(0.8)';
+      dot.style.boxShadow   = 'none';
+      dot.style.borderColor = 'rgba(255,255,255,0.05)';
     }
   });
 
-  updateInfoPanel(b, gs, ge, gen);
-  if (!skipScroll) scrollToWindow(wx);
+  wins.forEach(({ b, gs, ge }, i) => updateInfoPanel(b, gs, ge, getGeneration(b), i));
+
+  if (!skipScroll) {
+    const { wx } = wins[activeWindow];
+    scrollToWindow(wx);
+  }
 }
 
 function scrollToWindow(wx) {
@@ -1049,8 +1274,8 @@ function scrollToWindow(wx) {
 // ─────────────────────────────────────────────────────
 // INFO PANEL
 // ─────────────────────────────────────────────────────
-function updateInfoPanel(born, gs, ge, gen) {
-  const panel = document.getElementById('info-panel');
+function updateInfoPanel(born, gs, ge, gen, winIdx) {
+  const panel = document.getElementById(`info-col-${winIdx}`);
   const eraGames  = gamesWithLanes.filter(g => g.year >= gs && g.year <= ge);
   const topGames  = [...eraGames].sort((a,b) => b.impact - a.impact).slice(0, 10);
   const platforms = CONSOLES
@@ -1076,7 +1301,7 @@ function updateInfoPanel(born, gs, ge, gen) {
     </div>
     <div class="info-sep"></div>
     <div class="info-block" style="flex:1">
-      <div class="info-label">Top games in your era <span style="font-weight:400;color:var(--text-dim);text-transform:none;letter-spacing:0">— sorted by impact · top 3 highlighted</span></div>
+      <div class="info-label">Top games <span style="font-weight:400;color:var(--text-dim);text-transform:none;letter-spacing:0">— by impact · top 3 highlighted</span></div>
       <div id="era-games-row">
         ${topGames.map((g,i) => `
           <div class="era-game ${i < 3 ? 'top' : ''}">
@@ -1093,35 +1318,41 @@ function updateInfoPanel(born, gs, ge, gen) {
 // DRAG
 // ─────────────────────────────────────────────────────
 function setupDrag() {
-  const winEl = document.getElementById('window-el');
+  [0, 1].forEach(i => {
+    const winEl = document.getElementById(`window-el-${i}`);
+    function onDown(e) {
+      activeWindow = i;
+      draggingWin  = i;
+      winEl.classList.add('dragging');
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      dragStartX    = cx;
+      dragStartWinX = yearToX(clampBirth(birthYears[i]));
+      e.preventDefault();
+    }
+    winEl.addEventListener('mousedown',  onDown);
+    winEl.addEventListener('touchstart', onDown, { passive: false });
+  });
 
-  function onDown(e) {
-    isDragging = true;
-    winEl.classList.add('dragging');
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    dragStartX    = cx;
-    dragStartWinX = yearToX(clampBirth(birthYear));
+  document.addEventListener('mousemove', e => {
+    if (draggingWin < 0) return;
+    const dx = e.clientX - dragStartX;
+    birthYears[draggingWin] = clampBirth(Math.round((dragStartWinX + dx) / PX_PER_YEAR) + START_YEAR);
+    updateWindows(true);
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (draggingWin < 0) return;
+    const dx = e.touches[0].clientX - dragStartX;
+    birthYears[draggingWin] = clampBirth(Math.round((dragStartWinX + dx) / PX_PER_YEAR) + START_YEAR);
+    updateWindows(true);
     e.preventDefault();
-  }
-
-  function onMove(e) {
-    if (!isDragging) return;
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const dx = cx - dragStartX;
-    birthYear = clampBirth(Math.round((dragStartWinX + dx) / PX_PER_YEAR) + START_YEAR);
-    updateWindow(true); // skip auto-scroll while dragging
-  }
+  }, { passive: false });
 
   function onUp() {
-    if (!isDragging) return;
-    isDragging = false;
-    document.getElementById('window-el').classList.remove('dragging');
+    if (draggingWin < 0) return;
+    document.getElementById(`window-el-${draggingWin}`).classList.remove('dragging');
+    draggingWin = -1;
   }
-
-  winEl.addEventListener('mousedown',  onDown);
-  winEl.addEventListener('touchstart', onDown, { passive: false });
-  document.addEventListener('mousemove',  onMove);
-  document.addEventListener('touchmove',  onMove, { passive: false });
   document.addEventListener('mouseup',  onUp);
   document.addEventListener('touchend', onUp);
 }
@@ -1130,11 +1361,13 @@ function setupDrag() {
 // KEYBOARD
 // ─────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+  if (e.key === '1') { activeWindow = 0; updateWindows(true); return; }
+  if (e.key === '2') { activeWindow = 1; updateWindows(true); return; }
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
   e.preventDefault();
   const d = e.shiftKey ? 5 : 1;
-  birthYear += e.key === 'ArrowRight' ? d : -d;
-  updateWindow();
+  birthYears[activeWindow] += e.key === 'ArrowRight' ? d : -d;
+  updateWindows();
 });
 
 // ─────────────────────────────────────────────────────
@@ -1146,16 +1379,25 @@ window.addEventListener('DOMContentLoaded', () => {
   setupDrag();
 
   // Position overlay divs
-  ['overlay-left','overlay-right'].forEach(id => {
+  ['overlay-left','overlay-right','window-overlap'].forEach(id => {
     const el = document.getElementById(id);
     el.style.position = 'absolute';
-    el.style.zIndex   = '10';
     el.style.pointerEvents = 'none';
   });
 
-  const winEl = document.getElementById('window-el');
-  winEl.style.position = 'absolute';
-  winEl.style.width    = WINDOW_W + 'px';
+  [0, 1].forEach(i => {
+    const winEl = document.getElementById(`window-el-${i}`);
+    winEl.style.position = 'absolute';
+    winEl.style.width    = WINDOW_W + 'px';
+  });
+
+  // Header box click selects active window
+  [0, 1].forEach(i => {
+    document.getElementById(`win-box-${i}`).addEventListener('click', () => {
+      activeWindow = i;
+      updateWindows(true);
+    });
+  });
 
   // Impact filter — legend items are clickable
   document.querySelectorAll('.legend-size-item').forEach(item => {
@@ -1163,18 +1405,19 @@ window.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.legend-size-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       minImpact = parseInt(item.dataset.min);
-      updateWindow(true);
+      updateWindows(true);
     });
   });
 
-  updateWindow();
+  updateWindows();
 
   // ─── Mobile init ───────────────────────────────────
   function isMobileView() { return window.innerWidth <= 700; }
 
   function buildMobileTimeline() {
     const container = document.getElementById('m-timeline');
-    container.innerHTML = '';
+    // Remove only year rows — preserve the overlay divs
+    container.querySelectorAll('.m-year-row').forEach(r => r.remove());
     for (let y = START_YEAR; y <= END_YEAR; y++) {
       const row = document.createElement('div');
       row.className = 'm-year-row';
@@ -1203,67 +1446,106 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
       const gamesInYear = gamesWithLanes.filter(g => g.year === y);
-      if (gamesInYear.length) {
-        const col = document.createElement('div');
-        col.className = 'm-games-col';
-        gamesInYear.forEach(g => {
+      const col0 = document.createElement('div');
+      col0.className = 'm-col-w0';
+      const colSep = document.createElement('div');
+      colSep.className = 'm-col-sep';
+      const col1 = document.createElement('div');
+      col1.className = 'm-col-w1';
+
+      gamesInYear.forEach(g => {
+        [col0, col1].forEach((col, wi) => {
           const chip = document.createElement('div');
           chip.className = 'm-game-chip';
           chip.dataset.impact = g.impact;
+          chip.dataset.win = wi;
           chip.textContent = g.title;
           chip.addEventListener('click', e => { e.stopPropagation(); showMobileDetail(g); });
           col.appendChild(chip);
         });
-        row.appendChild(col);
-      }
+      });
+
+      row.appendChild(col0);
+      row.appendChild(colSep);
+      row.appendChild(col1);
       container.appendChild(row);
     }
   }
 
   function updateMobileWindow(skipScroll) {
-    const b  = clampBirth(birthYear);
-    const gs = b + EARLY_YEARS;
-    const ge = b + WINDOW_YEARS - 1;
-    const gen = getGeneration(b);
+    const wins = birthYears.map(by => {
+      const b = clampBirth(by);
+      return { b, gs: b + EARLY_YEARS, ge: b + WINDOW_YEARS - 1 };
+    });
 
-    document.getElementById('m-birth-year-val').textContent = b;
-    document.getElementById('m-gaming-range').textContent   = gs + ' – ' + ge;
-    const genEl = document.getElementById('m-generation');
-    genEl.textContent  = gen;
-    genEl.style.color  = getGenColor(gen);
+    wins.forEach(({ b, gs, ge }, i) => {
+      const gen = getGeneration(b);
+      document.getElementById(`m-birth-year-val-${i}`).textContent = b;
+      document.getElementById(`m-gaming-range-${i}`).textContent   = `${gs} – ${ge}`;
+      const genEl = document.getElementById(`m-generation-${i}`);
+      genEl.textContent = gen;
+      genEl.style.color = getGenColor(gen);
+    });
 
     document.querySelectorAll('.m-year-row').forEach(row => {
-      const y = parseInt(row.dataset.year);
-      row.classList.remove('birth-year-row', 'early-zone', 'gaming-zone');
-      row.querySelectorAll('.m-inline-zone-label').forEach(el => el.remove());
-      if (y === b) {
-        row.classList.add('birth-year-row');
-        const lz = document.createElement('div');
-        lz.className = 'm-inline-zone-label';
-        lz.textContent = 'Childhood (0–4)';
-        row.appendChild(lz);
-      } else if (y > b && y < gs) {
-        row.classList.add('early-zone');
-      } else if (y >= gs && y <= ge) {
-        row.classList.add('gaming-zone');
-        if (y === gs) {
-          const lz = document.createElement('div');
-          lz.className = 'm-inline-zone-label gaming';
-          lz.textContent = 'Gaming years (5–17)';
-          row.appendChild(lz);
-        }
-      }
+      const y    = parseInt(row.dataset.year);
+      const inW0 = y >= wins[0].gs && y <= wins[0].ge;
+      const inW1 = y >= wins[1].gs && y <= wins[1].ge;
 
-      const inWindow = y >= gs && y <= ge;
-      row.querySelectorAll('.m-game-chip').forEach(chip => {
+      row.querySelectorAll('.m-game-chip[data-win="0"]').forEach(chip => {
         const imp = parseInt(chip.dataset.impact);
         chip.style.display = imp >= minImpact ? '' : 'none';
-        chip.classList.toggle('in-window', inWindow);
+        chip.classList.toggle('in-window',   inW0);
+        chip.classList.remove('in-window-2');
+      });
+      row.querySelectorAll('.m-game-chip[data-win="1"]').forEach(chip => {
+        const imp = parseInt(chip.dataset.impact);
+        chip.style.display = imp >= minImpact ? '' : 'none';
+        chip.classList.toggle('in-window-2', inW1);
+        chip.classList.remove('in-window');
       });
     });
 
+    // Position the split window overlay rectangles (early zone + gaming zone)
+    const tl = document.getElementById('m-timeline');
+    [0, 1].forEach(i => {
+      const w = wins[i];
+      const birthRow  = tl.querySelector(`.m-year-row[data-year="${w.b}"]`);
+      const gsRow     = tl.querySelector(`.m-year-row[data-year="${w.gs}"]`);
+      const endRow    = tl.querySelector(`.m-year-row[data-year="${w.ge}"]`);
+      if (!birthRow || !gsRow || !endRow) return;
+
+      const colEl = birthRow.querySelector(i === 0 ? '.m-col-w0' : '.m-col-w1');
+      if (!colEl) return;
+      const colLeft  = colEl.offsetLeft;
+      const colWidth = colEl.offsetWidth;
+
+      const earlyOverlay  = document.getElementById(`m-early-overlay-${i}`);
+      const gamingOverlay = document.getElementById(`m-gaming-overlay-${i}`);
+
+      // Early zone: birth row → row just before gaming start
+      const earlyTop = birthRow.offsetTop;
+      const earlyBot = gsRow.offsetTop;
+      if (earlyOverlay) {
+        earlyOverlay.style.top    = earlyTop + 'px';
+        earlyOverlay.style.height = (earlyBot - earlyTop) + 'px';
+        earlyOverlay.style.left   = colLeft + 'px';
+        earlyOverlay.style.width  = colWidth + 'px';
+      }
+
+      // Gaming zone: gaming start row → end row
+      const gamingTop = gsRow.offsetTop;
+      const gamingBot = endRow.offsetTop + endRow.offsetHeight;
+      if (gamingOverlay) {
+        gamingOverlay.style.top    = gamingTop + 'px';
+        gamingOverlay.style.height = (gamingBot - gamingTop) + 'px';
+        gamingOverlay.style.left   = colLeft + 'px';
+        gamingOverlay.style.width  = colWidth + 'px';
+      }
+    });
+
     if (!skipScroll) {
-      const target = document.querySelector(`.m-year-row[data-year="${gs}"]`);
+      const target = document.querySelector(`.m-year-row[data-year="${wins[activeWindow].gs}"]`);
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
@@ -1286,18 +1568,18 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('m-detail-close').addEventListener('click', closeMobileDetail);
   document.getElementById('m-detail-backdrop').addEventListener('click', closeMobileDetail);
 
-  // Birth year stepper (hold to repeat)
-  function stepYear(dir) {
-    birthYear = clampBirth(birthYear + dir);
-    updateMobileWindow(true);
-  }
-  ['m-prev-year', 'm-next-year'].forEach(id => {
-    const btn = document.getElementById(id);
-    const dir = id === 'm-next-year' ? 1 : -1;
+  // Birth year steppers (hold to repeat)
+  document.querySelectorAll('.m-year-btn').forEach(btn => {
+    const w   = parseInt(btn.dataset.w);
+    const dir = parseInt(btn.dataset.dir);
     let interval = null;
     btn.addEventListener('pointerdown', () => {
-      stepYear(dir);
-      interval = setInterval(() => stepYear(dir), 120);
+      birthYears[w] = clampBirth(birthYears[w] + dir);
+      updateMobileWindow(true);
+      interval = setInterval(() => {
+        birthYears[w] = clampBirth(birthYears[w] + dir);
+        updateMobileWindow(true);
+      }, 120);
     });
     ['pointerup','pointerleave'].forEach(ev => btn.addEventListener(ev, () => clearInterval(interval)));
   });
@@ -1315,6 +1597,8 @@ window.addEventListener('DOMContentLoaded', () => {
   if (isMobileView()) {
     buildMobileTimeline();
     updateMobileWindow();
+  } else {
+    updateWindows();
   }
 });
 </script>
